@@ -6,11 +6,11 @@ serverPublicIp = scaleway.InstanceIp("serverPublicIp")
 
 modelTrainingCCIRunner = scaleway.InstanceServer("runnerServerLinuxGPU",
     type="DEV1-S",
-    image="ubuntu_jammy",
+    image="ubuntu_jammy_gpu_os_12",
     ip_id=runnerPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
-        size_in_gb=80,
+        size_in_gb=125,
         volume_type="b_ssd",
     ),
     user_data={
@@ -20,7 +20,7 @@ modelTrainingCCIRunner = scaleway.InstanceServer("runnerServerLinuxGPU",
 
 tensorflowServer = scaleway.InstanceServer("tensorflowServerLinux",
     type="DEV1-S",
-    image="ubuntu_jammy",
+    image="ubuntu_jammy_sbs",
     ip_id=serverPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
