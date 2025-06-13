@@ -14,7 +14,7 @@ modelTrainingCCIRunner = scaleway.InstanceServer("runnerServerLinuxGPU",
         volume_type="b_ssd",
     ),
     user_data={
-        "cloud-init": (lambda path: open(path).read())(f"runner_cloud_init.yml"),
+        "cloud-init": open("runner_cloud_init.yml").read(),
     }
 )
 
@@ -28,7 +28,7 @@ tensorflowServer = scaleway.InstanceServer("tensorflowServerLinux",
         volume_type="b_ssd",
     ),
     user_data={
-        "cloud-init": (lambda path: open(path).read())(f"modelserver_cloud_init.yml")
+        "cloud-init": open("modelserver_cloud_init.yml").read(),
     }
 )
 
