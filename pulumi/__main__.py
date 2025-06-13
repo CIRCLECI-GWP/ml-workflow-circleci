@@ -8,7 +8,7 @@ modelTrainingCCIRunner = scaleway.InstanceServer(
     "runnerServerLinux",
     zone="fr-par-2",
     type="GPU-3070-S",  # Change to a type you have quota for
-    image="ubuntu_jammy_gpu_os_12",  # Standard Ubuntu 24.04 x86_64 image
+    image="ubuntu_jammy_gpu",  # Standard Ubuntu 24.04 x86_64 image
     ip_id=runnerPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
