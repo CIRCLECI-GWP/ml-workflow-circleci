@@ -4,11 +4,11 @@ import lbrlabs_pulumi_scaleway as scaleway
 runnerPublicIp = scaleway.InstanceIp("runnerPublicIp")
 serverPublicIp = scaleway.InstanceIp("serverPublicIp")
 
-
 modelTrainingCCIRunner = scaleway.InstanceServer(
     "runnerServerLinuxGPU",
+    zone="fr-par-2",
     type="DEV1-S",
-    image="7632a8f7-5a85-45f4-95c7-cdcfd4e37c01",  # Use the SBS-compatible image ID
+    image="39367669-00e6-4268-9e88-a256bc7151ad",
     ip_id=runnerPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
@@ -22,8 +22,9 @@ modelTrainingCCIRunner = scaleway.InstanceServer(
 
 tensorflowServer = scaleway.InstanceServer(
     "tensorflowServerLinux",
+    zone="fr-par-2",
     type="DEV1-S",
-    image="7632a8f7-5a85-45f4-95c7-cdcfd4e37c01",  # Use the same or another SBS-compatible image ID
+    image="39367669-00e6-4268-9e88-a256bc7151ad",
     ip_id=serverPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
@@ -34,6 +35,7 @@ tensorflowServer = scaleway.InstanceServer(
         "cloud-init": open("modelserver_cloud_init.yml").read(),
     }
 )
+
 
 # Export the name and IP address of the new server
 pulumi.export("cci_runner_ip", modelTrainingCCIRunner.public_ip)
