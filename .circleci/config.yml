@@ -1,13 +1,13 @@
 version: 2.1
 
+orbs:
+  pulumi: pulumi/pulumi@2.1.0
+
 executors:
-  # For running on CircleCI's self-hosted runners
-  runner:
+  # One freshly baked runner, straight from the boulang... err, pipeline
+  scaleway_runner_linux:
     machine: true
-    resource_class: RUNNER_NAMESPACE/RUNNER_RESOURCE_CLASS # Update this to reflect your self-hosted runner resource class details
-    # For running on CircleCI's compute resources you would replace the above with the following for all jobs:
-    # docker:
-    #   - image: cimg/python:3.11.4
+    resource_class: tutorial-gwp/scaleway-linux-<< pipeline.number >>
 
 # Define custom commands for this config
 # See https://circleci.com/docs/reusing-config/#authoring-reusable-commands
@@ -20,18 +20,16 @@ commands:
       - run:
           command: pip3 --version
           name: Check Pip version
-  create-env:
+  populate-env:
     steps:
+      - attach_workspace:
+          at: .
       - run:
+          name: Restore secrets from workspace and add to environment vars
           # Environment variables must be configured in a CircleCI project or context
           command: |
-            cat \<<- EOF > .env
-            DEPLOY_SERVER_HOSTNAME=$DEPLOY_SERVER_HOSTNAME
-            DEPLOY_SERVER_USERNAME=$DEPLOY_SERVER_USERNAME
-            DEPLOY_SERVER_PASSWORD=$DEPLOY_SERVER_PASSWORD
-            DEPLOY_SERVER_PATH=$DEPLOY_SERVER_PATH
-            EOF
-          name: Create .env file containing secrets
+            cat .env >> $BASH_ENV
+            source $BASH_ENV
   wait-5:
     steps:
       - run:
@@ -41,20 +39,84 @@ commands:
 # Define custom jobs for this config
 # See: https://circleci.com/docs/jobs-steps/
 jobs:
+  provision_runner:
+    docker:
+      - image: cimg/python:3.11
+
+    steps:
+      - checkout
+      - run:
+          name: Install CircleCI CLI
+          command: |
+            # Make CircleCI CLI available at /usr/local/bin/circleci
+            curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
+
+      - run:
+          name: Provision new runner and prepare cloud-init file
+          command: |
+            runner_token_response=$(/usr/local/bin/circleci runner resource-class create tutorial-gwp/scaleway-linux-<<pipeline.number>> "Autoprovisioned Linux runner on Scaleway" --generate-token)
+            export runner_token=$(echo $runner_token_response | grep "auth_token:" | awk '{print $3}')
+            sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
+
+      - pulumi/login
+      - pulumi/update:
+          stack: yemiwebby-org/cci-ml-runner/cci-runner-linux
+          working_directory: pulumi
+      - run:
+          name: Store model server IP to workspace
+          command: |
+            mkdir workspace
+            echo "export DEPLOY_SERVER_HOSTNAME=$(pulumi stack output modelserver_ip  --cwd pulumi --stack  yemiwebby-org/cci-ml-runner/cci-runner-linux)" > workspace/.env
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - .env
+
+  destroy_runner:
+    docker:
+      - image: cimg/python:3.11
+    steps:
+      - checkout
+      - run:
+          name: Install CircleCI CLI
+          command: |
+            # Make CircleCI CLI available at /usr/local/bin/circleci
+            curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
+
+      - run:
+          name: Remove Runner token and Resource class
+          command: |
+            runner_resource_class="tutorial-gwp/scaleway-linux-<< pipeline.number >>"
+            /usr/local/bin/circleci runner token ls $runner_resource_class
+            token_output=$(circleci runner token ls $runner_resource_class)
+            echo $token_output
+
+            # Grab UUID
+            runner_token_id=$(echo $token_output | grep -o -E '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+
+            echo $runner_token_id
+
+            /usr/local/bin/circleci runner token delete $runner_token_id
+            /usr/local/bin/circleci runner resource-class delete $runner_resource_class
+
+      - pulumi/login
+      - pulumi/destroy:
+          stack: yemiwebby-org/cci-ml-runner/cci-runner-linux
+          working_directory: pulumi
+
   install-build:
-    executor: runner
+    executor: scaleway_runner_linux
     steps:
       - checkout # Check out the code in the project directory
       - check-python # Invoke command "check-python"
-      - create-env     
       - run:
           # command: | can be used to in a CircleCI config file to run multiple lines of code in a single command
           command: |
             echo "Checking current user $USER is able to run docker commands"
             # Users need to be apart of the docker group to run docker commands with out sudo, try running `usermod -aG docker circleci` to add the current user to the group
-            docker ps 
+            docker ps
           name: Verify current user can use docker
-      - run: 
+      - run:
           command: bash ./tools/install.sh
           name: Run script to install dependencies
       - run:
@@ -71,7 +133,7 @@ jobs:
             - .env # Persist the .env file containing secrets
             - tools # Persist the tools directory
   train:
-    executor: runner
+    executor: scaleway_runner_linux
     steps: # Steps in jobs are run sequentially
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
@@ -85,7 +147,7 @@ jobs:
           paths:
             - ml # Only files in the ml directory have changed and need to be persisted back to the workspace
   test:
-    executor: runner
+    executor: scaleway_runner_linux
     steps: # Steps in jobs are run sequentially
       - attach_workspace:
           at: .
@@ -93,7 +155,7 @@ jobs:
           command: source ./venv/bin/activate && python3 ./ml/3_test.py
           name: Test the model
   retrain:
-    executor: runner
+    executor: scaleway_runner_linux
 
     steps:
       - attach_workspace:
@@ -105,27 +167,35 @@ jobs:
           # You could trigger custom notifications here so that the person responsible for a particular job is notified via email, Slack, etc.
           name: Run on fail status
           command: |
-              echo "I am result of above failed job" 
+            echo "I am result of above failed job"
           when: on_fail
       - persist_to_workspace:
           root: .
           paths:
             - ml # Only files in the ml directory have changed and need to be persisted back to the workspace
   package:
-    executor: runner
+    executor: scaleway_runner_linux
 
     steps:
       - attach_workspace:
           at: .
+      - populate-env
+      - run:
+          command: |
+            echo "Hostname should be: $DEPLOY_SERVER_HOSTNAME"
       - run:
           command: source ./venv/bin/activate && python3 ./ml/4_package.py
-          name: Package the model  
+          name: Package the model
   deploy:
-    executor: runner
+    executor: scaleway_runner_linux
 
     steps:
       - attach_workspace:
           at: .
+      - populate-env
+      - run:
+          command: |
+            echo "Hostname should be: $DEPLOY_SERVER_HOSTNAME"
       - run:
           command: |
             # '\' can be used to continue a long command onto the next line to improve readability
@@ -136,7 +206,7 @@ jobs:
           command: source ./venv/bin/activate && python3 ./ml/5_deploy.py
           name: Deploy the model
   test-deployment:
-    executor: runner
+    executor: scaleway_runner_linux
     steps:
       - attach_workspace:
           at: .
@@ -151,55 +221,74 @@ workflows:
   # This workflow does a full build from scratch and deploys the model
   build-deploy:
     jobs:
-      - install-build
+      - provision_runner:
+          context:
+            - pulumi
+            - scaleway
+            - circleci-api
+      - install-build:
+          requires:
+            - provision_runner
+          context:
+            - ml-scaleway-demo
       - train:
-          requires: # Only run the job when the preceding step in the ML process has been completed so that they are run sequentially
+          requires:
             - install-build
-      # To demonstrate how to run two tests concurrently, we'll run the same test twice under different names - if either required test fails, the next job that requires them (in this case, package) will not run - https://circleci.com/docs/workflows/#concurrent-job-execution
       - test:
-          name: test-1
-          requires: 
-            - train
-      - test:
-          name: test-2
-          requires: 
+          requires:
             - train
       - package:
           requires:
-            - test-1
-            - test-2
+            - test
+          context:
+            - ml-scaleway-demo
       # Do not deploy without manual approval - you can inspect the console output from training and make sure you are happy to deploy
       - deploy:
-          requires: 
-            - package 
+          requires:
+            - package
+          context:
+            - ml-scaleway-demo
       - test-deployment:
           requires:
             - deploy
+          context:
+            - ml-scaleway-demo
+      - approve_destroy:
+          type: approval
+          requires:
+            - test-deployment
+      - destroy_runner:
+          context:
+            - pulumi
+            - scaleway
+            - circleci-api
+          requires:
+            - approve_destroy
   retrain-deploy:
-      # Trigger on a schedule or when retrain branch is updated
-      triggers:
-        - schedule:
-            cron: "0 0 * * *" # Daily
-            filters:
-              branches:
-                only:
-                  - retrain
-      jobs:
-        - install-build
-        - retrain:
-            requires:
-              - install-build
-        # Do not redeploy without manual approval - you can inspect the console output from training and make sure you are happy to deploy the retrained model
-        - hold: # A job that will require manual approval in the CircleCI web application.
-            requires: 
-              - retrain
-            type: approval # This key-value pair will set your workflow to a status of "On Hold"
-        - package:
-            requires:
-              - hold
-        - deploy:
-            requires:
-              - package
-        - test-deployment:
-            requires:
-              - deploy
+    # Trigger on a schedule or when retrain branch is updated
+    triggers:
+      - schedule:
+          cron: "0 0 * * *" # Daily
+          filters:
+            branches:
+              only:
+                - retrain
+    jobs:
+      - install-build
+      - retrain:
+          requires:
+            - install-build
+      # Do not redeploy without manual approval - you can inspect the console output from training and make sure you are happy to deploy the retrained model
+      - hold: # A job that will require manual approval in the CircleCI web application.
+          requires:
+            - retrain
+          type: approval # This key-value pair will set your workflow to a status of "On Hold"
+      - package:
+          requires:
+            - hold
+      - deploy:
+          requires:
+            - package
+      - test-deployment:
+          requires:
+            - deploy
