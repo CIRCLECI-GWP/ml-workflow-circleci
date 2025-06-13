@@ -7,8 +7,8 @@ serverPublicIp = scaleway.InstanceIp("serverPublicIp")
 modelTrainingCCIRunner = scaleway.InstanceServer(
     "runnerServerLinuxGPU",
     zone="fr-par-2",
-    type="DEV1-S",
-    image="0fac0fa6-3ca6-454e-8c4b-40843cc7b91e",
+    type="GPU-3070-S",
+    image="15210e89-33e4-48ba-a438-33daa4a7594c",
     ip_id=runnerPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
@@ -23,8 +23,8 @@ modelTrainingCCIRunner = scaleway.InstanceServer(
 tensorflowServer = scaleway.InstanceServer(
     "tensorflowServerLinux",
     zone="fr-par-2",
-    type="DEV1-S",
-    image="0fac0fa6-3ca6-454e-8c4b-40843cc7b91e",
+    type="GPU-3070-S",
+    image="15210e89-33e4-48ba-a438-33daa4a7594c",
     ip_id=serverPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
