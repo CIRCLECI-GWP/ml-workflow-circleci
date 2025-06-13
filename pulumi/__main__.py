@@ -4,13 +4,15 @@ import lbrlabs_pulumi_scaleway as scaleway
 runnerPublicIp = scaleway.InstanceIp("runnerPublicIp")
 serverPublicIp = scaleway.InstanceIp("serverPublicIp")
 
-modelTrainingCCIRunner = scaleway.InstanceServer("runnerServerLinuxGPU",
+
+modelTrainingCCIRunner = scaleway.InstanceServer(
+    "runnerServerLinuxGPU",
     type="DEV1-S",
-    image="ubuntu_jammy_gpu_os_12",
+    image="7632a8f7-5a85-45f4-95c7-cdcfd4e37c01",  # Use the SBS-compatible image ID
     ip_id=runnerPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
-        size_in_gb=125,
+        size_in_gb=80,
         volume_type="b_ssd",
     ),
     user_data={
@@ -18,9 +20,10 @@ modelTrainingCCIRunner = scaleway.InstanceServer("runnerServerLinuxGPU",
     }
 )
 
-tensorflowServer = scaleway.InstanceServer("tensorflowServerLinux",
+tensorflowServer = scaleway.InstanceServer(
+    "tensorflowServerLinux",
     type="DEV1-S",
-    image="ubuntu_jammy_sbs",
+    image="7632a8f7-5a85-45f4-95c7-cdcfd4e37c01",  # Use the same or another SBS-compatible image ID
     ip_id=serverPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
