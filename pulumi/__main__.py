@@ -7,8 +7,8 @@ serverPublicIp = scaleway.InstanceIp("serverPublicIp")
 modelTrainingCCIRunner = scaleway.InstanceServer(
     "runnerServerLinux",
     zone="fr-par-2",
-    type="DEV1-S",  # Change to a type you have quota for
-    image="34e2e0d1-899e-40a7-9f08-a75ab3c59fb8",  # Standard Ubuntu 24.04 x86_64 image
+    type="GPU-3070-S",  # Change to a type you have quota for
+    image="ubuntu_jammy_gpu_sbs",  # Standard Ubuntu 24.04 x86_64 image
     ip_id=runnerPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
@@ -23,8 +23,8 @@ modelTrainingCCIRunner = scaleway.InstanceServer(
 tensorflowServer = scaleway.InstanceServer(
     "tensorflowServerLinux",
     zone="fr-par-2",
-    type="DEV1-S",  # or any CPU type you have quota for
-    image="34e2e0d1-899e-40a7-9f08-a75ab3c59fb8",  # Ubuntu 24.04 x86_64
+    type="PRO2-M",  # or any CPU type you have quota for
+    image="ubuntu_jammy_sbs",  # Ubuntu 24.04 x86_64
     ip_id=serverPublicIp.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
