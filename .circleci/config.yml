@@ -98,6 +98,10 @@ jobs:
 
             /usr/local/bin/circleci runner token delete $runner_token_id
             /usr/local/bin/circleci runner resource-class delete $runner_resource_class
+      - run:
+          name: Install Scaleway Pulumi provider
+          command: |
+            python3 -m pip install pulumi_scaleway
 
       - pulumi/login
       - pulumi/destroy:
