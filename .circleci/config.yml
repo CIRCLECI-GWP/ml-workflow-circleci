@@ -107,20 +107,21 @@ jobs:
           working_directory: pulumi
 
   install-build:
-    executor: scaleway_runner_linux
+    machine: true
+    resource_class: medium
     steps:
       - checkout # Check out the code in the project directory
-      - check-python # Invoke command "check-python"
-      - run:
-          name: Verify current user can use docker
-          command: docker ps      
-      - run:
-          # command: | can be used to in a CircleCI config file to run multiple lines of code in a single command
-          command: |
-            echo "Checking current user $USER is able to run docker commands"
-            # Users need to be apart of the docker group to run docker commands with out sudo, try running `usermod -aG docker circleci` to add the current user to the group
-            docker ps
-          name: Verify current user can use docker
+      # - check-python # Invoke command "check-python"
+      # - run:
+      #     name: Verify current user can use docker
+      #     command: docker ps
+      # - run:
+      #     # command: | can be used to in a CircleCI config file to run multiple lines of code in a single command
+      #     command: |
+      #       echo "Checking current user $USER is able to run docker commands"
+      #       # Users need to be apart of the docker group to run docker commands with out sudo, try running `usermod -aG docker circleci` to add the current user to the group
+      #       docker ps
+      #     name: Verify current user can use docker
       - run:
           command: bash ./tools/install.sh
           name: Run script to install dependencies
