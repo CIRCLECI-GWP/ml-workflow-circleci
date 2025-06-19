@@ -1,6 +1,7 @@
 import pulumi
 import lbrlabs_pulumi_scaleway as scaleway
-from lbrlabs_pulumi_scaleway import get_image as scaleway_get_image
+from lbrlabs_pulumi_scaleway.instance import get_local_image
+
 # import lbrlabs_pulumi_scaleway
 # from  lbrlabs_pulumi_scaleway import get_image as scaleway
 # from lbrlabs_pulumi_scaleway import get_image as scaleway_get_image
@@ -9,11 +10,14 @@ from lbrlabs_pulumi_scaleway import get_image as scaleway_get_image
 runnerPublicIp = scaleway.InstanceIp("runnerPublicIp")
 serverPublicIp = scaleway.InstanceIp("serverPublicIp")
 
-zone = "fr-par-2"
-jammy = scaleway_get_image(
-    filters=[{"name": "name", "values": ["ubuntu_jammy"]}],
+zone = "fr-par-1"
+
+jammy = get_local_image(
+    image_label="ubuntu_jammy",
+    arch="x86_64",
+    type="instance_local",
     zone=zone,
-    public=True,
+    latest=True,
 )
 
 
