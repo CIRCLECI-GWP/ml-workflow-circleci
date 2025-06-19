@@ -7,14 +7,22 @@ zone = "fr-par-1"
 runner_ip = scaleway.InstanceIp("runnerPublicIp", zone=zone)
 server_ip = scaleway.InstanceIp("serverPublicIp", zone=zone)
 
+jammy = get_marketplace_image(
+    label="ubuntu_jammy",
+    arch="x86_64",          # match the ARCH column
+    image_type="instance_sbs",
+    zone=zone,
+)
+
+
 # Pick the Ubuntu Jammy local-image ID you saw
-JAMMY_ID = "e17b585e-c52f-44b0-97f6-07c18bb5bb86"
+# JAMMY_ID = "e17b585e-c52f-44b0-97f6-07c18bb5bb86"
 
 modelTrainingCCIRunner = scaleway.InstanceServer(
     "runnerServerLinux",
     zone=zone,
     type="GP1-XS",  # Change to a type you have quota for
-    image=JAMMY_ID,  # Standard Ubuntu 24.04 x86_64 image
+    image=jammy.id,  # Standard Ubuntu 24.04 x86_64 image
     ip_id=runner_ip.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
@@ -29,8 +37,8 @@ modelTrainingCCIRunner = scaleway.InstanceServer(
 tensorflowServer = scaleway.InstanceServer(
     "tensorflowServerLinux",
     zone=zone,
-    type="PRO2-XS",  # or any CPU type you have quota for
-    image=JAMMY_ID,  # Ubuntu 24.04 x86_64
+    type="DEV1-L",  # or any CPU type you have quota for
+    image=jammy.id,  # Ubuntu 24.04 x86_64
     ip_id=server_ip.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
