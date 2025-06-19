@@ -9,7 +9,6 @@ server_ip = scaleway.InstanceIp("serverPublicIp", zone=zone)
 
 jammy = get_marketplace_image(
     label="ubuntu_jammy",
-    image_type="instance_sbs",
     zone=zone,
 )
 
