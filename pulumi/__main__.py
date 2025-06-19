@@ -10,14 +10,14 @@ server_ip = Ip("serverPublicIp", zone=zone)
 
 # SBS-backed Ubuntu Jammy image (looked up manually)
 # JAMMY_SBS_ID = "e17b585e-c52f-44b0-97f6-07c18bb5bb86"
-jammy = get_image(label="ubuntu_jammy", zone=zone, volume_type="b_ssd")
+# jammy = get_image(label="ubuntu_jammy", zone=zone, volume_type="b_ssd")
 
 # GPU runner
 modelTrainingCCIRunner = Server(
     "runnerServerLinux",
     zone=zone,
     type="GP1-XS",
-    image=jammy.id,
+    image="ubuntu_jammy",
     ip_id=runner_ip.id,
     root_volume={
         "size_in_gb": 80,
@@ -31,7 +31,7 @@ tensorflowServer = Server(
     "tensorflowServerLinux",
     zone=zone,
     type="DEV1-L",
-    image=jammy.id,
+    image="ubuntu_jammy",
     ip_id=server_ip.id,
     root_volume={
         "size_in_gb": 40,
