@@ -2,15 +2,13 @@ import pulumi
 import lbrlabs_pulumi_scaleway as scaleway
 # from lbrlabs_pulumi_scaleway import get_marketplace_image
 
-runner_ip = scaleway.InstanceIp("runnerPublicIp")
-server_ip = scaleway.InstanceIp("serverPublicIp")
+zone = "fr-par-1"
 
+runner_ip = scaleway.InstanceIp("runnerPublicIp", zone=zone)
+server_ip = scaleway.InstanceIp("serverPublicIp", zone=zone)
 
 # Pick the Ubuntu Jammy local-image ID you saw
 JAMMY_ID = "e17b585e-c52f-44b0-97f6-07c18bb5bb86"
-
-zone = "fr-par-1"
-
 
 modelTrainingCCIRunner = scaleway.InstanceServer(
     "runnerServerLinux",
