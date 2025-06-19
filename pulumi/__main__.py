@@ -24,10 +24,11 @@ zone = "fr-par-1"
 # )
 
 jammy = get_marketplace_image(
-    label="ubuntu_jammy",   # the label you saw in `scw marketplace local-image list`
+    label="ubuntu_jammy",       # the LABEL from `scw marketplace local-image list`
+    arch="x86_64",              # match the ARCH column
+    type="instance_local",      # match the TYPE column
     zone=zone,
-    latest=True,            # pick the newest build
-) 
+)
 
 
 modelTrainingCCIRunner = scaleway.InstanceServer(
