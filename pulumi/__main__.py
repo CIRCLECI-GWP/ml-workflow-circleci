@@ -1,29 +1,21 @@
-# import pulumi
-# import pulumi_scaleway as scaleway
-# from pulumi_scaleway import get_marketplace_image
-
 import pulumi
 import lbrlabs_pulumi_scaleway as scaleway
-from lbrlabs_pulumi_scaleway import get_marketplace_image
 
 zone = "fr-par-1"
 
-# Allocate public IPs
+# Reserve two public IPs
 runner_ip = scaleway.InstanceIp("runnerPublicIp", zone=zone)
 server_ip = scaleway.InstanceIp("serverPublicIp", zone=zone)
 
-# Look up the Ubuntu Jammy image from the marketplace
-jammy = get_marketplace_image(
-    label="ubuntu_jammy",
-    zone=zone,
-)
+# SBS-backed Ubuntu Jammy image (looked up manually)
+JAMMY_SBS_ID = "e17b585e-c52f-44b0-97f6-07c18bb5bb86"
 
-# GPU runner (make sure you have quota for GP1-XS)
+# GPU runner
 modelTrainingCCIRunner = scaleway.InstanceServer(
     "runnerServerLinux",
     zone=zone,
     type="GP1-XS",
-    image=jammy.id,
+    image=JAMMY_SBS_ID,
     ip_id=runner_ip.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
@@ -35,24 +27,24 @@ modelTrainingCCIRunner = scaleway.InstanceServer(
     },
 )
 
-# CPU model server (DEV1-L has 4 vCPUs / 8 GiB)
+# CPU model server
 tensorflowServer = scaleway.InstanceServer(
     "tensorflowServerLinux",
     zone=zone,
     type="DEV1-L",
-    image=jammy.id,
+    image=JAMMY_SBS_ID,
     ip_id=server_ip.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
         size_in_gb=40,
         volume_type="b_ssd",
     ),
-       user_data={
+    user_data={
         "cloud-init": open("modelserver_cloud_init.yml").read(),
     },
 )
 
-# Exports
+# Export outputs
 pulumi.export("cci_runner_ip", modelTrainingCCIRunner.public_ip)
 pulumi.export("cci_runner_id", modelTrainingCCIRunner.id)
 pulumi.export("modelserver_id", tensorflowServer.id)
