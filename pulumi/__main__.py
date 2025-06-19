@@ -13,7 +13,7 @@ JAMMY_ID = "e17b585e-c52f-44b0-97f6-07c18bb5bb86"
 modelTrainingCCIRunner = scaleway.InstanceServer(
     "runnerServerLinux",
     zone=zone,
-    type="GPU-3070-S",  # Change to a type you have quota for
+    type="GP1-XS",  # Change to a type you have quota for
     image=JAMMY_ID,  # Standard Ubuntu 24.04 x86_64 image
     ip_id=runner_ip.id,
     routed_ip_enabled=True,
@@ -29,7 +29,7 @@ modelTrainingCCIRunner = scaleway.InstanceServer(
 tensorflowServer = scaleway.InstanceServer(
     "tensorflowServerLinux",
     zone=zone,
-    type="PRO2-M",  # or any CPU type you have quota for
+    type="PRO2-XS",  # or any CPU type you have quota for
     image=JAMMY_ID,  # Ubuntu 24.04 x86_64
     ip_id=server_ip.id,
     routed_ip_enabled=True,
