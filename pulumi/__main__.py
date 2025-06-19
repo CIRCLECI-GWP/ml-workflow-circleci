@@ -1,7 +1,4 @@
 import pulumi
-import lbrlabs_pulumi_scaleway as scaleway
-
-import pulumi
 import pulumiverse_scaleway as scaleway
 from pulumiverse_scaleway.instance import Server, Ip, get_image
 
