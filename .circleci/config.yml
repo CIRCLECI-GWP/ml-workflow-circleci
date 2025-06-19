@@ -17,9 +17,7 @@ commands:
       - run:
           command: python3 --version
           name: Check Python version
-      - run:
-          command: pip3 --version
-          name: Check Pip version
+
   populate-env:
     steps:
       - attach_workspace:

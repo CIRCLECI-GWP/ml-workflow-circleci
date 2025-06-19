@@ -1,6 +1,5 @@
 import pulumi
-import pulumiverse_scaleway as scaleway
-from pulumiverse_scaleway.instance import Server, Ip, get_image
+from pulumiverse_scaleway.instance import Server, Ip
 
 zone = "fr-par-1"
 
@@ -8,9 +7,6 @@ zone = "fr-par-1"
 runner_ip = Ip("runnerPublicIp", zone=zone)
 server_ip = Ip("serverPublicIp", zone=zone)
 
-# SBS-backed Ubuntu Jammy image (looked up manually)
-# JAMMY_SBS_ID = "e17b585e-c52f-44b0-97f6-07c18bb5bb86"
-# jammy = get_image(label="ubuntu_jammy", zone=zone, volume_type="b_ssd")
 
 # GPU runner
 modelTrainingCCIRunner = Server(
