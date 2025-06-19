@@ -30,7 +30,9 @@ modelTrainingCCIRunner = scaleway.InstanceServer(
         size_in_gb=80,
         volume_type="b_ssd",
     ),
-    user_data=open("runner_cloud_init.yml").read(),
+    user_data={
+        "cloud-init": open("runner_cloud_init.yml").read(),
+    },
 )
 
 # CPU model server (DEV1-L has 4 vCPUs / 8 GiB)
@@ -45,7 +47,9 @@ tensorflowServer = scaleway.InstanceServer(
         size_in_gb=40,
         volume_type="b_ssd",
     ),
-    user_data=open("modelserver_cloud_init.yml").read(),
+       user_data={
+        "cloud-init": open("modelserver_cloud_init.yml").read(),
+    },
 )
 
 # Exports
