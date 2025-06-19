@@ -107,37 +107,35 @@ jobs:
           working_directory: pulumi
 
   install-build:
-    machine: true
-    resource_class: medium
+    docker:
+      - image: cimg/python:3.11 # or whichever version you're targeting
     steps:
-      - checkout # Check out the code in the project directory
-      # - check-python # Invoke command "check-python"
-      # - run:
-      #     name: Verify current user can use docker
-      #     command: docker ps
-      # - run:
-      #     # command: | can be used to in a CircleCI config file to run multiple lines of code in a single command
-      #     command: |
-      #       echo "Checking current user $USER is able to run docker commands"
-      #       # Users need to be apart of the docker group to run docker commands with out sudo, try running `usermod -aG docker circleci` to add the current user to the group
-      #       docker ps
-      #     name: Verify current user can use docker
+      - checkout
       - run:
+          name: Install system build dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y python3-distutils build-essential
+      - run:
+          name: Check Python & Pip
+          command: |
+            python3 --version
+            pip3 --version
+      - run:
+          name: Run your project’s install script
           command: bash ./tools/install.sh
-          name: Run script to install dependencies
       - run:
-          command: source ./venv/bin/activate && python3 ./ml/1_build.py # Activate the Python virtual environment before running Python scripts
           name: Build the model
+          command: |
+            source ./venv/bin/activate
+            python3 ./ml/1_build.py
       - persist_to_workspace:
-          # Workspaces let you persist data between jobs - saving time on re-downloading or recreating assets https://circleci.com/docs/workspaces/
-          # Must be an absolute path or relative path from working_directory. This is a directory on the container that is taken to be the root directory of the workspace.
-          # In this example, the workspace root is the working directory (.)
           root: .
           paths:
-            - venv # Persist the Python virtual environment
-            - ml # Persist the ml directory which now includes model and training data
-            - .env # Persist the .env file containing secrets
-            - tools # Persist the tools directory
+            - venv
+            - ml
+            - .env
+            - tools
   train:
     executor: scaleway_runner_linux
     steps: # Steps in jobs are run sequentially
