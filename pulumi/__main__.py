@@ -1,40 +1,22 @@
 import pulumi
 import lbrlabs_pulumi_scaleway as scaleway
-from lbrlabs_pulumi_scaleway import get_marketplace_image
-
-# import lbrlabs_pulumi_scaleway
-# from  lbrlabs_pulumi_scaleway import get_image as scaleway
-# from lbrlabs_pulumi_scaleway import get_image as scaleway_get_image
-
-
-# runnerPublicIp = scaleway.InstanceIp("runnerPublicIp")
-# serverPublicIp = scaleway.InstanceIp("serverPublicIp")
+# from lbrlabs_pulumi_scaleway import get_marketplace_image
 
 runner_ip = scaleway.InstanceIp("runnerPublicIp")
 server_ip = scaleway.InstanceIp("serverPublicIp")
 
+
+# Pick the Ubuntu Jammy local-image ID you saw
+JAMMY_ID = "e17b585e-c52f-44b0-97f6-07c18bb5bb86"
+
 zone = "fr-par-1"
-
-jammy = get_marketplace_image(
-    label="ubuntu_jammy",
-    image_type="instance_local",      # matches the TYPE column
-    instance_type="PRO2-M",           # the CPU instance you’ll run here
-    zone=zone,
-)
-
-# jammy = get_marketplace_image(
-#     label="ubuntu_jammy",       # the LABEL from `scw marketplace local-image list`
-#     arch="x86_64",              # match the ARCH column
-#     type="instance_local",      # match the TYPE column
-#     zone=zone,
-# )
 
 
 modelTrainingCCIRunner = scaleway.InstanceServer(
     "runnerServerLinux",
     zone=zone,
     type="GPU-3070-S",  # Change to a type you have quota for
-    image=jammy.id,  # Standard Ubuntu 24.04 x86_64 image
+    image=JAMMY_ID,  # Standard Ubuntu 24.04 x86_64 image
     ip_id=runner_ip.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
@@ -50,7 +32,7 @@ tensorflowServer = scaleway.InstanceServer(
     "tensorflowServerLinux",
     zone=zone,
     type="PRO2-M",  # or any CPU type you have quota for
-    image=jammy.id,  # Ubuntu 24.04 x86_64
+    image=JAMMY_ID,  # Ubuntu 24.04 x86_64
     ip_id=server_ip.id,
     routed_ip_enabled=True,
     root_volume=scaleway.InstanceServerRootVolumeArgs(
