@@ -15,20 +15,19 @@ server_ip = scaleway.InstanceIp("serverPublicIp")
 
 zone = "fr-par-1"
 
-# jammy = get_marketplace_image(
-#     image_label="ubuntu_jammy",
-#     arch="x86_64",
-#     type="instance_local",
-#     zone=zone,
-#     latest=True,
-# )
-
 jammy = get_marketplace_image(
-    label="ubuntu_jammy",       # the LABEL from `scw marketplace local-image list`
-    arch="x86_64",              # match the ARCH column
-    type="instance_local",      # match the TYPE column
+    label="ubuntu_jammy",
+    image_type="instance_local",      # matches the TYPE column
+    instance_type="PRO2-M",           # the CPU instance you’ll run here
     zone=zone,
 )
+
+# jammy = get_marketplace_image(
+#     label="ubuntu_jammy",       # the LABEL from `scw marketplace local-image list`
+#     arch="x86_64",              # match the ARCH column
+#     type="instance_local",      # match the TYPE column
+#     zone=zone,
+# )
 
 
 modelTrainingCCIRunner = scaleway.InstanceServer(
