@@ -1,6 +1,6 @@
 import pulumi
 import lbrlabs_pulumi_scaleway as scaleway
-from lbrlabs_pulumi_scaleway.instance import get_local_image
+from lbrlabs_pulumi_scaleway import get_local_image
 
 # import lbrlabs_pulumi_scaleway
 # from  lbrlabs_pulumi_scaleway import get_image as scaleway
