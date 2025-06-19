@@ -107,7 +107,8 @@ jobs:
           working_directory: pulumi
 
   install-build:
-    executor: scaleway_runner_linux
+    docker:
+      - image: cimg/python:3.11
     steps:
       - checkout # Check out the code in the project directory
       - check-python # Invoke command "check-python"
