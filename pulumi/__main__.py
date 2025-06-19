@@ -9,7 +9,6 @@ server_ip = scaleway.InstanceIp("serverPublicIp", zone=zone)
 
 jammy = get_marketplace_image(
     label="ubuntu_jammy",
-    arch="x86_64",          # match the ARCH column
     image_type="instance_sbs",
     zone=zone,
 )
@@ -30,7 +29,7 @@ modelTrainingCCIRunner = scaleway.InstanceServer(
         volume_type="b_ssd",
     ),
     user_data={
-        "cloud-init": open("runner_cloud_init.yml").read(),
+         "cloud-init": (lambda path: open(path).read())(f"runner_cloud_init.yml"),
     }
 )
 
@@ -46,7 +45,7 @@ tensorflowServer = scaleway.InstanceServer(
         volume_type="b_ssd",
     ),
     user_data={
-        "cloud-init": open("modelserver_cloud_init.yml").read(),
+         "cloud-init": (lambda path: open(path).read())(f"modelserver_cloud_init.yml")
     }
 )
 
