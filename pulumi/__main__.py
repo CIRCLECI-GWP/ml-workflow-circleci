@@ -1,6 +1,6 @@
 import pulumi
 import lbrlabs_pulumi_scaleway as scaleway
-# from lbrlabs_pulumi_scaleway import get_marketplace_image
+from lbrlabs_pulumi_scaleway import get_marketplace_image
 
 zone = "fr-par-1"
 
