@@ -57,10 +57,6 @@ jobs:
             runner_token_response=$(/usr/local/bin/circleci runner resource-class create tutorial-gwp/scaleway-linux-<<pipeline.number>> "Autoprovisioned Linux runner on Scaleway" --generate-token)
             export runner_token=$(echo $runner_token_response | grep "auth_token:" | awk '{print $3}')
             sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
-      - run:
-          name: Install Scaleway Pulumi provider
-          command: |
-            python3 -m pip install pulumi_scaleway
 
       - pulumi/login
       - pulumi/update:
