@@ -21,7 +21,7 @@ modelTrainingCCIRunner = Server(
     ip_id=runner_ip.id,
     root_volume={
         "size_in_gb": 80,
-        "volume_type":"b_ssd",
+        "volume_type":"sbs_volume",
     },
     cloud_init=open("runner_cloud_init.yml").read(),
 )
@@ -35,13 +35,13 @@ tensorflowServer = Server(
     ip_id=server_ip.id,
     root_volume={
         "size_in_gb": 40,
-        "volume_type": "b_ssd",
+        "volume_type": "sbs_volume",
     },
     cloud_init=open("modelserver_cloud_init.yml").read(),
 )
 
 # Export outputs
-pulumi.export("cci_runner_ip", modelTrainingCCIRunner.public_ip)
+pulumi.export("cci_runner_ip", modelTrainingCCIRunner.public_ips)
 pulumi.export("cci_runner_id", modelTrainingCCIRunner.id)
 pulumi.export("modelserver_id", tensorflowServer.id)
-pulumi.export("modelserver_ip", tensorflowServer.public_ip)
+pulumi.export("modelserver_ip", tensorflowServer.public_ips)
