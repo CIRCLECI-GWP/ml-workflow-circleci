@@ -193,17 +193,21 @@ jobs:
           at: .
 
       - run:
-          name: Recreate virtual environment using current Python
+          name: Install Python 3.11 and set as default
           command: |
-            rm -rf venv
+            sudo apt update
+            sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
+            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+            sudo update-alternatives --set python3 /usr/bin/python3.11
+            curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3
+
+      - run:
+          name: Create new venv and install TensorFlow
+          command: |
+            python3 --version
             python3 -m venv venv
             source venv/bin/activate
             pip install --upgrade pip
-
-      - run:
-          name: Install TensorFlow
-          command: |
-            source venv/bin/activate
             pip install tensorflow
 
       - run:
