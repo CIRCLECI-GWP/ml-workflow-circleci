@@ -12,7 +12,7 @@ executors:
   default_linux_machine:
     machine:
       image: ubuntu-2204:current
-    # resource_class: tutorial-gwp/scaleway-linux-<< pipeline.number >>
+    resource_class: tutorial-gwp/scaleway-linux-<< pipeline.number >>
 # Define custom commands for this config
 # See https://circleci.com/docs/reusing-config/#authoring-reusable-commands
 commands:
