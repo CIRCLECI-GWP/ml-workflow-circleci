@@ -62,9 +62,9 @@ jobs:
           command: |
             mkdir -p ~/.circleci
             cat <<EOF > ~/.circleci/cli.yml
-      host: https://circleci.com
-      token: $CIRCLECI_CLI_TOKEN
-      EOF
+            host: https://circleci.com
+            token: $CIRCLECI_CLI_TOKEN
+            EOF
             echo "✅ CLI config written"
             cat ~/.circleci/cli.yml
 
