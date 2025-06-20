@@ -158,32 +158,25 @@ jobs:
       - checkout
 
       - run:
-          name: Install and switch to Python 3.11 globally
+          name: Install Python 3.11 with pip
           command: |
             sudo apt update
-            sudo apt install -y python3.11 python3.11-distutils python3.11-venv curl
-            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            sudo update-alternatives --set python3 /usr/bin/python3.11
+            sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
             curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
-            which python3
-            python3 --version
-            python3 -m pip --version
 
       - run:
-          name: Install build dependencies
+          name: Create venv and install deps
           command: |
-            sudo apt-get update
-            sudo apt-get install -y build-essential
-
-      - run:
-          name: Run your project’s install script
-          command: bash ./tools/install.sh
+            python3.11 -m venv venv
+            source venv/bin/activate
+            python -m pip install --upgrade pip
+            bash ./tools/install.sh
 
       - run:
           name: Build the model
           command: |
-            source ./venv/bin/activate
-            python3 ./ml/1_build.py
+            source venv/bin/activate
+            python ./ml/1_build.py
 
       - persist_to_workspace:
           root: .
