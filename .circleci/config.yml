@@ -43,7 +43,7 @@ commands:
 jobs:
   provision_runner:
     docker:
-      - image: cimg/python:3.11
+      - image: cimg/python:3.11.9
 
     steps:
       - checkout
@@ -146,7 +146,7 @@ jobs:
 
   destroy_runner:
     docker:
-      - image: cimg/python:3.11
+      - image: cimg/python:3.11.9
     steps:
       - checkout
       - run:
