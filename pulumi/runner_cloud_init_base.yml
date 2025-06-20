@@ -1,20 +1,60 @@
 #!/bin/sh
+# export runner_token="RUNNER_TOKEN"
+
+# echo "Runner token $runner_token"
+
+# # CircleCI Runner installation
+# curl -s https://packagecloud.io/install/repositories/circleci/runner/script.deb.sh?any=true | sudo bash
+
+# sudo apt-get update
+# sudo apt-get install -y python3-pip python3-venv docker.io
+
+# # ensure docker daemon is up
+# sudo systemctl enable docker
+# sudo systemctl start docker
+
+# sudo apt-get install -y circleci-runner python3.10-venv
+
+# # Add CCI user to Docker
+# usermod -aG docker circleci
+
+# sudo sed -i "s/<< AUTH_TOKEN >>/$runner_token/g" /etc/circleci-runner/circleci-runner-config.yaml
+
+# # Prepare and start runner daemon
+# sudo systemctl enable circleci-runner && sudo systemctl start circleci-runner
+
+# # Check status
+# sudo systemctl status circleci-runner
+
+
 export runner_token="RUNNER_TOKEN"
 
 echo "Runner token $runner_token"
 
-# CircleCI Runner installation
+# Install Docker first
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install -y docker.io python3-pip python3-venv
+
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Now install CircleCI runner
 curl -s https://packagecloud.io/install/repositories/circleci/runner/script.deb.sh?any=true | sudo bash
+sudo apt-get install -y circleci-runner
 
-sudo apt-get install -y circleci-runner python3.10-venv
+# Give the circleci user docker access
+sudo usermod -aG docker circleci
 
-# Add CCI user to Docker
-usermod -aG docker circleci
+# Inject your runner token
+sudo sed -i "s/RUNNER_TOKEN/$runner_token/g" /etc/circleci-runner/circleci-runner-config.yaml
 
-sudo sed -i "s/<< AUTH_TOKEN >>/$runner_token/g" /etc/circleci-runner/circleci-runner-config.yaml
+# Enable & start the runner service
+sudo systemctl enable circleci-runner
+sudo systemctl start  circleci-runner
 
-# Prepare and start runner daemon
-sudo systemctl enable circleci-runner && sudo systemctl start circleci-runner
-
-# Check status
-sudo systemctl status circleci-runner
+# Dump its status to the logs (non-blocking)
+sudo systemctl status circleci-runner --no-pager || true
