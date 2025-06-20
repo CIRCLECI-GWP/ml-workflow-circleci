@@ -48,6 +48,10 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Debug Token Length (just to verify presence)
+          command: |
+            echo ${#CIRCLECI_CLI_TOKEN}
+      - run:
           name: Install CircleCI CLI
           command: |
             # Make CircleCI CLI available at /usr/local/bin/circleci
