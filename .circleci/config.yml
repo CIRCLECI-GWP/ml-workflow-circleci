@@ -60,7 +60,7 @@ jobs:
               tutorial-gwp/scaleway-linux-<<pipeline.number>> \
               "Autoprovisioned Linux runner on Scaleway" \
               --generate-token \
-              --format json)
+            )
 
             # 2) Save the raw JSON for debugging
             echo "$runner_token_response" > runner-class.json
