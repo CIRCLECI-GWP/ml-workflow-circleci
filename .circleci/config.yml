@@ -50,14 +50,35 @@ jobs:
             curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
 
       - run:
-          name: Provision new runner and prepare cloud-init file
+          name: Provision new runner resource class (idempotent)
           command: |
-            runner_token_response=$(/usr/local/bin/circleci runner resource-class create tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER} "Autoprovisioned Linux runner on Scaleway" --generate-token)
-            export runner_token=$(echo $runner_token_response | grep "auth_token:" | awk '{print $3}')
-            sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
-            circleci runner resource-class list tutorial-gwp
-            # then list the *instances* for that class
-            circleci runner instance list tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER}
+            # only create if it doesn’t already exist
+            if ! circleci runner resource-class list tutorial-gwp \
+                  | grep -q "tutorial-gwp/scaleway-linux-<< pipeline.number >>"; then
+              circleci runner resource-class create \
+                tutorial-gwp/scaleway-linux-<< pipeline.number >> \
+                "Autoprovisioned Linux runner on Scaleway" \
+                --generate-token
+            else
+              echo "✅ Resource class already exists, skipping create"
+            fi
+
+            # now pull out the token on first-run
+            runner_token=$(circleci runner token ls tutorial-gwp/scaleway-linux-<< pipeline.number >> \
+                          | awk '/auth_token:/ {print $2}')
+            sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml \
+                > pulumi/runner_cloud_init.yml
+
+      # - run:
+      #     name: Provision new runner and prepare cloud-init file
+      #     command: |
+      #       runner_token_response=$(/usr/local/bin/circleci runner resource-class create tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER} "Autoprovisioned Linux runner on Scaleway" --generate-token)
+
+      #       export runner_token=$(echo $runner_token_response | grep "auth_token:" | awk '{print $3}')
+      #       sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
+      #       circleci runner resource-class list tutorial-gwp
+      #       # then list the *instances* for that class
+      #       circleci runner instance list tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER}
       - run:
           name: Install Pulumi & Scaleway SDK
           command: |
