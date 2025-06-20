@@ -65,6 +65,11 @@ jobs:
             cat ~/.circleci/cli.yml
 
       - run:
+          name: Test resource-class list
+          command: |
+            circleci runner resource-class list tutorial-gwp
+
+      - run:
           name: Install Pulumi & Scaleway SDK
           command: |
             python3 -m pip install pulumi pulumiverse_scaleway
