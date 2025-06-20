@@ -52,28 +52,19 @@ jobs:
       - run:
           name: Provision new runner and prepare cloud-init file
           command: |
-            # install jq so we can parse JSON
-            sudo apt-get update && sudo apt-get install -y jq
-
-            # 1) Create the resource-class and tell the CLI to emit JSON
-            runner_token_response=$(/usr/local/bin/circleci runner resource-class create \
-              tutorial-gwp/scaleway-linux-<<pipeline.number>> \
-              "Autoprovisioned Linux runner on Scaleway" \
-              --generate-token \
+            # create the resource class and grab the token
+            runner_token_response=$(
+              circleci runner resource-class create \
+                tutorial-gwp/scaleway-linux-<<pipeline.number>> \
+                "Autoprovisioned Linux runner on Scaleway" \
+                --generate-token
             )
-
-            # 2) Save the raw JSON for debugging
-            echo "$runner_token_response" > runner-class.json
-            echo "=== Resource-Class JSON ==="
-            cat runner-class.json
-
-            # 3) Extract just the token
-            export runner_token=$(jq -r '.auth_token' runner-class.json)
-            echo "Using runner_token: $runner_token"
-
-            # 4) Fill in your cloud-init template
-            sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml \
-                > pulumi/runner_cloud_init.yml
+            echo "$runner_token_response"
+            export runner_token=$(echo "$runner_token_response" \
+              | awk '/auth_token:/ { print $2 }')
+            # inject into cloud-init
+            sed "s/RUNNER_TOKEN/${runner_token}/g" \
+              pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
 
       - run:
           name: List all resource-classes in tutorial-gwp
