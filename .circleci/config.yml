@@ -188,18 +188,28 @@ jobs:
 
   train:
     executor: default_linux_machine
-    steps: # Steps in jobs are run sequentially
+    steps:
       - attach_workspace:
-          # Must be absolute path or relative path from working_directory
-          # In this example, the workspace root is the working directory (.)
           at: .
+
       - run:
-          command: source ./venv/bin/activate && python3 ./ml/2_train.py
+          name: Activate venv and install TensorFlow
+          command: |
+            source ./venv/bin/activate
+            pip install --upgrade pip
+            pip install tensorflow
+
+      - run:
           name: Train the model
+          command: |
+            source ./venv/bin/activate
+            python3 ./ml/2_train.py
+
       - persist_to_workspace:
           root: .
           paths:
-            - ml # Only files in the ml directory have changed and need to be persisted back to the workspace
+            - ml
+
   test:
     executor: default_linux_machine
     steps: # Steps in jobs are run sequentially
