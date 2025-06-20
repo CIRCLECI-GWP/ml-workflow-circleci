@@ -89,6 +89,7 @@ jobs:
           name: Provision new runner and prepare cloud-init file
           command: |
             RESOURCE_CLASS="tutorial-gwp/scaleway-linux-${CIRCLE_WORKFLOW_ID}"
+            RUNNER_TOKEN_NICKNAME="scaleway-runner-$(date +%s)"
 
             echo "🔎 Checking for existing resource class: ${RESOURCE_CLASS}"
 
@@ -105,11 +106,12 @@ jobs:
             else
               echo "🚀 Creating resource class '${RESOURCE_CLASS}'..."
               circleci runner resource-class create "${RESOURCE_CLASS}" \
-                "Autoprovisioned Linux runner on Scaleway"
+                "Autoprovisioned Linux runner on Scaleway" --token "$CIRCLECI_CLI_TOKEN"
             fi
 
             echo "🔑 Generating new runner token..."
-            runner_token_response=$(circleci runner token create "${RESOURCE_CLASS}" --generate-token)
+            runner_token_response=$(circleci runner token create "${RESOURCE_CLASS}" "${RUNNER_TOKEN_NICKNAME}" --token "$CIRCLECI_CLI_TOKEN")
+
             runner_token=$(echo "$runner_token_response" | grep "token:" | awk '{print $2}')
 
             if [ -z "$runner_token" ]; then
