@@ -157,15 +157,25 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install system build dependencies
+          name: Install and switch to Python 3.11
           command: |
-            sudo apt-get update
-            sudo apt-get install -y python3-distutils build-essential
+            sudo apt update
+            sudo apt install -y python3.11 python3.11-venv python3.11-distutils
+            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+            python3 --version
+
       - run:
           name: Check Python & Pip
           command: |
             python3 --version
             pip3 --version
+
+      - run:
+          name: Install system build dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y python3-distutils build-essential
+
       - run:
           name: Run your project’s install script
           command: bash ./tools/install.sh
