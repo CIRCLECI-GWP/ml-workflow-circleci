@@ -7,7 +7,7 @@ executors:
   # One freshly baked runner, straight from the boulang... err, pipeline
   scaleway_runner_linux:
     machine: true
-    resource_class: tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER}
+    resource_class: tutorial-gwp/scaleway-linux-<< pipeline.number >>
 
 # Define custom commands for this config
 # See https://circleci.com/docs/reusing-config/#authoring-reusable-commands
