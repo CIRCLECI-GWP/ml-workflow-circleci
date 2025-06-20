@@ -156,35 +156,35 @@ jobs:
     executor: default_linux_machine
     steps:
       - checkout
+
       - run:
-          name: Install and switch to Python 3.11
+          name: Install and switch to Python 3.11 globally
           command: |
             sudo apt update
-            sudo apt install -y python3.11 python3.11-venv python3.11-distutils
+            sudo apt install -y python3.11 python3.11-distutils python3.11-venv curl
             sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            export PATH="/usr/bin:$PATH" # 🧠 Force /usr/bin/python3 to be used
+            sudo update-alternatives --set python3 /usr/bin/python3.11
+            curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
+            which python3
             python3 --version
+            python3 -m pip --version
 
       - run:
-          name: Check Python & Pip
-          command: |
-            python3 --version
-            pip3 --version
-
-      - run:
-          name: Install system build dependencies
+          name: Install build dependencies
           command: |
             sudo apt-get update
-            sudo apt-get install -y python3-distutils build-essential
+            sudo apt-get install -y build-essential
 
       - run:
           name: Run your project’s install script
           command: bash ./tools/install.sh
+
       - run:
           name: Build the model
           command: |
             source ./venv/bin/activate
             python3 ./ml/1_build.py
+
       - persist_to_workspace:
           root: .
           paths:
@@ -192,6 +192,7 @@ jobs:
             - ml
             - .env
             - tools
+
   train:
     executor: default_linux_machine
     steps: # Steps in jobs are run sequentially
