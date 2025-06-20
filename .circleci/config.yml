@@ -57,21 +57,26 @@ jobs:
             # Make CircleCI CLI available at /usr/local/bin/circleci
             curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
 
-      - run:
-          name: Force CLI token into config
-          command: |
-            mkdir -p ~/.circleci
-            cat <<EOF > ~/.circleci/cli.yml
-            host: https://circleci.com
-            token: $CIRCLECI_CLI_TOKEN
-            EOF
-            echo "✅ CLI config written"
-            cat ~/.circleci/cli.yml
+      # - run:
+      #     name: Force CLI token into config
+      #     command: |
+      #       mkdir -p ~/.circleci
+      #       cat \<<EOF > ~/.circleci/cli.yml
+      #       host: https://circleci.com
+      #       token: $CIRCLECI_CLI_TOKEN
+      #       EOF
+      #       echo "✅ CLI config written"
+      #       cat ~/.circleci/cli.yml
 
       - run:
-          name: Test resource-class list
+          name: List resource-classes with token explicitly
           command: |
-            circleci runner resource-class list tutorial-gwp
+            circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN"
+
+      # - run:
+      #     name: Test resource-class list
+      #     command: |
+      #       circleci runner resource-class list tutorial-gwp
 
       - run:
           name: Install Pulumi & Scaleway SDK
