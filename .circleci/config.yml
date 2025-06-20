@@ -59,6 +59,21 @@ jobs:
             python3 -m pip install pulumi pulumiverse_scaleway
 
       - pulumi/login
+
+      - run:
+          name: Provision new runner and prepare cloud-init file
+          command: |
+            export CIRCLECI_CLI_TOKEN=${CIRCLECI_CLI_TOKEN}
+
+            runner_token_response=$(/usr/local/bin/circleci runner resource-class create tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER} \
+              "Autoprovisioned Linux runner on Scaleway" --generate-token)
+
+            runner_token=$(echo "$runner_token_response" | grep "auth_token:" | awk '{print $2}')
+
+            echo "Runner token generated"
+
+            sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
+
       - pulumi/update:
           stack: yemiwebby-org/cci-ml-runner/cci-runner-linux
           working_directory: pulumi
