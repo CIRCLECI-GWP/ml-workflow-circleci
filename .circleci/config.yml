@@ -3,12 +3,16 @@ version: 2.1
 orbs:
   pulumi: pulumi/pulumi@2.1.0
 
+# executors:
+#   # One freshly baked runner, straight from the boulang... err, pipeline
+#   default_linux_machine:
+#     machine:
+#       image: "ubuntu-2204:2023.10.1"
 executors:
-  # One freshly baked runner, straight from the boulang... err, pipeline
   default_linux_machine:
-    machine: true
-      image: "ubuntu-2204:2023.10.1"
-
+    machine:
+      image: ubuntu-2204:current
+    resource_class: tutorial-gwp/scaleway-linux-<< pipeline.number >>
 # Define custom commands for this config
 # See https://circleci.com/docs/reusing-config/#authoring-reusable-commands
 commands:
