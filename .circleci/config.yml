@@ -193,16 +193,23 @@ jobs:
           at: .
 
       - run:
-          name: Activate venv and install TensorFlow
+          name: Recreate virtual environment using current Python
           command: |
-            source ./venv/bin/activate
+            rm -rf venv
+            python3 -m venv venv
+            source venv/bin/activate
             pip install --upgrade pip
+
+      - run:
+          name: Install TensorFlow
+          command: |
+            source venv/bin/activate
             pip install tensorflow
 
       - run:
           name: Train the model
           command: |
-            source ./venv/bin/activate
+            source venv/bin/activate
             python3 ./ml/2_train.py
 
       - persist_to_workspace:
