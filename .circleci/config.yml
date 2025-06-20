@@ -109,7 +109,7 @@ jobs:
             fi
 
             echo "🔑 Generating new runner token..."
-            runner_token_response=$(circleci runner token create "${RESOURCE_CLASS}" "AutoProvisionedRunner")
+            runner_token_response=$(circleci runner token create "${RESOURCE_CLASS}" "${RESOURCE_CLASS##*/}" --token "$CIRCLECI_CLI_TOKEN")
             runner_token=$(echo "$runner_token_response" | grep "token:" | awk '{print $2}')
 
             if [ -z "$runner_token" ]; then
@@ -119,13 +119,16 @@ jobs:
 
             echo "✅ Runner token created: ${#runner_token} characters long"
 
-            # 👇 Navigate into the Pulumi project directory before config and sed
+            echo "📁 Moving into Pulumi folder..."
             cd pulumi
+
+            echo "📌 Selecting Pulumi stack..."
+            pulumi stack select cci-runner-linux
 
             echo "⚙️ Setting Pulumi config..."
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
 
-            echo "🛠️ Replacing token in cloud-init file..."
+            echo "🛠️ Preparing cloud-init file..."
             sed "s/RUNNER_TOKEN/${runner_token}/g" runner_cloud_init_base.yml > runner_cloud_init.yml
 
       - pulumi/update:
