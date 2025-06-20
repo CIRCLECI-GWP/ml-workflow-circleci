@@ -114,13 +114,15 @@ jobs:
     steps:
       - checkout
       - run:
-          name: “Wait for runner to show up”
+          name: Wait for runner to check in
           command: |
-            timeout 60 bash -c '
-              while ! circleci runner instance list tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER} \
-                        | grep -q ONLINE; do
-                echo "Waiting for runner…"; sleep 5;
+            timeout 120 bash -c '
+              echo "⏳ Waiting for your Scaleway runner to come online…"
+              until circleci runner instance list tutorial-gwp/scaleway-linux-<< pipeline.number >> \
+                    | grep -q ONLINE; do
+                sleep 5
               done
+              echo "✅ Runner is ONLINE!"
             '
       - run:
           name: Install system build dependencies
