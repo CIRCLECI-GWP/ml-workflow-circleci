@@ -57,26 +57,10 @@ jobs:
             # Make CircleCI CLI available at /usr/local/bin/circleci
             curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
 
-      # - run:
-      #     name: Force CLI token into config
-      #     command: |
-      #       mkdir -p ~/.circleci
-      #       cat \<<EOF > ~/.circleci/cli.yml
-      #       host: https://circleci.com
-      #       token: $CIRCLECI_CLI_TOKEN
-      #       EOF
-      #       echo "✅ CLI config written"
-      #       cat ~/.circleci/cli.yml
-
       - run:
           name: List resource-classes with token explicitly
           command: |
             circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN"
-
-      # - run:
-      #     name: Test resource-class list
-      #     command: |
-      #       circleci runner resource-class list tutorial-gwp
 
       - run:
           name: Install Pulumi & Scaleway SDK
@@ -121,6 +105,14 @@ jobs:
 
             echo "📁 Moving into Pulumi folder..."
             cd pulumi
+
+            echo "🐍 Creating venv with Python 3.11 explicitly..."
+            python3.11 -m venv venv
+            source venv/bin/activate
+
+            echo "⬆️ Upgrading pip and installing Pulumi + Scaleway SDK..."
+            pip install --upgrade pip
+            pip install pulumi pulumiverse_scaleway
 
             echo "📌 Selecting Pulumi stack..."
             pulumi stack select cci-runner-linux
