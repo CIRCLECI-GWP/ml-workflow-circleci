@@ -52,24 +52,9 @@ jobs:
       - run:
           name: Provision new runner and prepare cloud-init file
           command: |
-            # create the resource class and grab the token
-            runner_token_response=$(
-              circleci runner resource-class create \
-                tutorial-gwp/scaleway-linux-<<pipeline.number>> \
-                "Autoprovisioned Linux runner on Scaleway" \
-                --generate-token
-            )
-            echo "$runner_token_response"
-            export runner_token=$(echo "$runner_token_response" \
-              | awk '/auth_token:/ { print $2 }')
-            # inject into cloud-init
-            sed "s/RUNNER_TOKEN/${runner_token}/g" \
-              pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
-
-      - run:
-          name: List all resource-classes in tutorial-gwp
-          command: |
-            circleci runner resource-class list tutorial-gwp --format json | jq .
+            runner_token_response=$(/usr/local/bin/circleci runner resource-class create tutorial-gwp/scaleway-linux-<<pipeline.number>> "Autoprovisioned Linux runner on Scaleway" --generate-token)
+            export runner_token=$(echo $runner_token_response | grep "auth_token:" | awk '{print $3}')
+            sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
       - run:
           name: Install Pulumi & Scaleway SDK
           command: |
