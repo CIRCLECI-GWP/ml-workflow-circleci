@@ -7,7 +7,7 @@ executors:
   # One freshly baked runner, straight from the boulang... err, pipeline
   scaleway_runner_linux:
     machine: true
-    resource_class: tutorial-gwp/scaleway-linux-<< pipeline.number >>
+    resource_class: CIRCLECI-GWP/scaleway-linux-<< pipeline.number >>
 
 # Define custom commands for this config
 # See https://circleci.com/docs/reusing-config/#authoring-reusable-commands
@@ -52,7 +52,7 @@ jobs:
       - run:
           name: Provision new runner and prepare cloud-init file
           command: |
-            runner_token_response=$(/usr/local/bin/circleci runner resource-class create tutorial-gwp/scaleway-linux-<<pipeline.number>> "Autoprovisioned Linux runner on Scaleway" --generate-token)
+            runner_token_response=$(/usr/local/bin/circleci runner resource-class create CIRCLECI-GWP/scaleway-linux-<<pipeline.number>> "Autoprovisioned Linux runner on Scaleway" --generate-token)
             export runner_token=$(echo $runner_token_response | grep "auth_token:" | awk '{print $3}')
             sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
       - run:
@@ -88,7 +88,7 @@ jobs:
       - run:
           name: Remove Runner token and Resource class
           command: |
-            runner_resource_class="tutorial-gwp/scaleway-linux-<< pipeline.number >>"
+            runner_resource_class="CIRCLECI-GWP/scaleway-linux-<< pipeline.number >>"
             /usr/local/bin/circleci runner token ls $runner_resource_class
             token_output=$(circleci runner token ls $runner_resource_class)
             echo $token_output
@@ -107,10 +107,10 @@ jobs:
           working_directory: pulumi
 
   install-build:
-    docker:
-      - image: cimg/python:3.11 # or whichever version you're targeting
+    executor: scaleway_runner_linux
     steps:
       - checkout
+      - check-python
       - run:
           name: Install system build dependencies
           command: |
