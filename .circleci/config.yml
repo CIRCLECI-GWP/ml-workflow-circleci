@@ -119,7 +119,10 @@ jobs:
 
             pulumi stack select yemiwebby-org/cci-ml-runner/cci-runner-linux
 
-            pulumi config set cci-ml-runner:modelserver:sshPublicKey "$(cat ~/.ssh/id_rsa_circleci.pub)" --plaintext
+            pulumi config set modelserver:sshPublicKey "$(cat ~/.ssh/id_rsa_circleci.pub)" --plaintext
+
+
+            # pulumi config set cci-ml-runner:modelserver:sshPublicKey "$(cat ~/.ssh/id_rsa_circleci.pub)" --plaintext
 
             echo "⚙️ Setting Pulumi config..."
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
