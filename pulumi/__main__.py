@@ -49,4 +49,4 @@ tensorflowServer = Server(
 pulumi.export("cci_runner_ip", modelTrainingCCIRunner.public_ips)
 pulumi.export("cci_runner_id", modelTrainingCCIRunner.id)
 pulumi.export("modelserver_id", tensorflowServer.id)
-pulumi.export("modelserver_ip", tensorflowServer.public_ips)
+pulumi.export("modelserver_ip", server_ip.address)
