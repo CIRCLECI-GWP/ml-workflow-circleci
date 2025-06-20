@@ -1,12 +1,21 @@
 import pulumi
 from pulumiverse_scaleway.instance import Server, Ip
 
+# Replace this with your actual CircleCI runner token (or read from config/env)
+runner_token = pulumi.Config().require("circleciRunnerToken")
+
 zone = "fr-par-1"
 
-# Reserve two public IPs
+# Reserve public IPs
 runner_ip = Ip("runnerPublicIp", zone=zone)
 server_ip = Ip("serverPublicIp", zone=zone)
 
+# Read and inject the runner token into the cloud-init script
+with open("runner_cloud_init_base.yml") as f:
+    cloud_init_runner = f.read().replace("RUNNER_TOKEN", runner_token)
+
+with open("modelserver_cloud_init.yml") as f:
+    cloud_init_modelserver = f.read()
 
 # GPU runner
 modelTrainingCCIRunner = Server(
@@ -17,9 +26,9 @@ modelTrainingCCIRunner = Server(
     ip_id=runner_ip.id,
     root_volume={
         "size_in_gb": 80,
-        "volume_type":"sbs_volume",
+        "volume_type": "sbs_volume",
     },
-    cloud_init=open("runner_cloud_init.yml").read(),
+    cloud_init=cloud_init_runner,
 )
 
 # CPU model server
@@ -33,7 +42,7 @@ tensorflowServer = Server(
         "size_in_gb": 40,
         "volume_type": "sbs_volume",
     },
-    cloud_init=open("modelserver_cloud_init.yml").read(),
+    cloud_init=cloud_init_modelserver,
 )
 
 # Export outputs
