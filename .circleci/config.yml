@@ -279,8 +279,15 @@ jobs:
           command: |
             echo "Hostname should be: $DEPLOY_SERVER_HOSTNAME"
       - run:
-          command: source ./venv/bin/activate && python3 ./ml/4_package.py
+          name: Install TensorFlow
+          command: |
+            source ./venv/bin/activate
+            pip install --upgrade pip
+            pip install tensorflow
+      - run:
           name: Package the model
+          command: source ./venv/bin/activate && python3 ./ml/4_package.py
+
   deploy:
     executor: default_linux_machine
 
