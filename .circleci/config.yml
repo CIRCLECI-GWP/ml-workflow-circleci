@@ -90,18 +90,32 @@ jobs:
           command: |
             RESOURCE_CLASS="tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER}"
 
-            if circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN" | awk '{print $1}' | grep -q "^${RESOURCE_CLASS}$"; then
-              echo "ℹ️ Resource class '${RESOURCE_CLASS}' already exists."
+            echo "🔎 Checking for existing resource class: ${RESOURCE_CLASS}"
+
+            if [ -z "$RESOURCE_CLASS" ]; then
+              echo "❌ RESOURCE_CLASS is empty. Exiting."
+              exit 1
+            fi
+
+            echo "📋 Listing all available resource classes:"
+            circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN"
+
+            if circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN" | awk '{print $1}' | grep -Fxq "${RESOURCE_CLASS}"; then
+              echo "ℹ️ Resource class '${RESOURCE_CLASS}' already exists. Skipping creation."
             else
               echo "🚀 Creating resource class '${RESOURCE_CLASS}'..."
               circleci runner resource-class create "${RESOURCE_CLASS}" \
                 "Autoprovisioned Linux runner on Scaleway"
             fi
 
-
             echo "🔑 Generating new runner token..."
             runner_token_response=$(circleci runner token create "${RESOURCE_CLASS}" --generate-token)
             runner_token=$(echo "$runner_token_response" | grep "token:" | awk '{print $2}')
+
+            if [ -z "$runner_token" ]; then
+              echo "❌ Failed to extract runner token. Exiting."
+              exit 1
+            fi
 
             echo "✅ Runner token created: ${#runner_token} characters long"
 
