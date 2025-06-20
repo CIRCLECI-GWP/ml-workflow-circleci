@@ -71,12 +71,12 @@ jobs:
           command: |
             ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_circleci -N "" -C "circleci@deploy"
             cat ~/.ssh/id_rsa_circleci.pub
-      - run:
-          name: Login & set Pulumi config
-          command: |
-            cd pulumi
-            pulumi stack select yemiwebby-org/cci-ml-runner/cci-runner-linux
-            pulumi config set modelserver:sshPublicKey "$(cat ~/.ssh/id_rsa_circleci.pub)" --plaintext
+      # - run:
+      #     name: Login & set Pulumi config
+      #     command: |
+      #       cd pulumi
+      #       pulumi stack select yemiwebby-org/cci-ml-runner/cci-runner-linux
+      #       pulumi config set modelserver:sshPublicKey "$(cat ~/.ssh/id_rsa_circleci.pub)" --plaintext
 
       - pulumi/login
 
@@ -108,7 +108,9 @@ jobs:
             pip install --upgrade pip
             pip install pulumi pulumiverse_scaleway
 
+            pulumi stack select yemiwebby-org/cci-ml-runner/cci-runner-linux
 
+            pulumi config set modelserver:sshPublicKey "$(cat ~/.ssh/id_rsa_circleci.pub)" --plaintext
 
             echo "⚙️ Setting Pulumi config..."
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
