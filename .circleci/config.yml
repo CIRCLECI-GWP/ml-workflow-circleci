@@ -86,14 +86,23 @@ jobs:
       - pulumi/login
 
       - run:
-          name: Provision new runner and prepare cloud-init file.
+          name: Provision new runner and prepare cloud-init file
           command: |
-            runner_token_response=$(/usr/local/bin/circleci runner resource-class create tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER} \
-              "Autoprovisioned Linux runner on Scaleway" --generate-token)
+            RESOURCE_CLASS="tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER}"
 
-            runner_token=$(echo "$runner_token_response" | grep "auth_token:" | awk '{print $2}')
+            if circleci runner resource-class list tutorial-gwp | grep -q "${RESOURCE_CLASS}"; then
+              echo "ℹ️ Resource class '${RESOURCE_CLASS}' already exists."
+            else
+              echo "🚀 Creating resource class '${RESOURCE_CLASS}'..."
+              circleci runner resource-class create "${RESOURCE_CLASS}" \
+                "Autoprovisioned Linux runner on Scaleway"
+            fi
 
-            echo "Runner token generated"
+            echo "🔑 Generating new runner token..."
+            runner_token_response=$(circleci runner token create "${RESOURCE_CLASS}" --generate-token)
+            runner_token=$(echo "$runner_token_response" | grep "token:" | awk '{print $2}')
+
+            echo "✅ Runner token created: ${#runner_token} characters long"
 
             sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
 
