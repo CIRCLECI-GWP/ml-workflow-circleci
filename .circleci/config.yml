@@ -110,12 +110,12 @@ jobs:
             python3.11 -m venv venv
             source venv/bin/activate
 
-            echo "⬆️ Upgrading pip and installing Pulumi + Scaleway SDK..."
+            echo "⬆️ Installing Pulumi SDK and dependencies..."
             pip install --upgrade pip
             pip install pulumi pulumiverse_scaleway
 
             echo "📌 Selecting Pulumi stack..."
-            pulumi stack select cci-runner-linux
+            pulumi stack select yemiwebby-org/cci-ml-runner/cci-runner-linux
 
             echo "⚙️ Setting Pulumi config..."
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
