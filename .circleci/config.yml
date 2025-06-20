@@ -90,13 +90,14 @@ jobs:
           command: |
             RESOURCE_CLASS="tutorial-gwp/scaleway-linux-${CIRCLE_PIPELINE_NUMBER}"
 
-            if circleci runner resource-class list tutorial-gwp | grep -q "${RESOURCE_CLASS}"; then
+            if circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN" | awk '{print $1}' | grep -q "^${RESOURCE_CLASS}$"; then
               echo "ℹ️ Resource class '${RESOURCE_CLASS}' already exists."
             else
               echo "🚀 Creating resource class '${RESOURCE_CLASS}'..."
               circleci runner resource-class create "${RESOURCE_CLASS}" \
                 "Autoprovisioned Linux runner on Scaleway"
             fi
+
 
             echo "🔑 Generating new runner token..."
             runner_token_response=$(circleci runner token create "${RESOURCE_CLASS}" --generate-token)
