@@ -119,10 +119,14 @@ jobs:
 
             echo "✅ Runner token created: ${#runner_token} characters long"
 
-            # 🔐 Set Pulumi config required for deployment
+            # 👇 Navigate into the Pulumi project directory before config and sed
+            cd pulumi
+
+            echo "⚙️ Setting Pulumi config..."
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
 
-            sed "s/RUNNER_TOKEN/${runner_token}/g" pulumi/runner_cloud_init_base.yml > pulumi/runner_cloud_init.yml
+            echo "🛠️ Replacing token in cloud-init file..."
+            sed "s/RUNNER_TOKEN/${runner_token}/g" runner_cloud_init_base.yml > runner_cloud_init.yml
 
       - pulumi/update:
           stack: yemiwebby-org/cci-ml-runner/cci-runner-linux
