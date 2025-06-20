@@ -58,6 +58,13 @@ jobs:
             curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
 
       - run:
+          name: Configure CircleCI CLI to use environment token
+          command: |
+            mkdir -p ~/.circleci
+            echo 'token: "'$CIRCLECI_CLI_TOKEN'"' > ~/.circleci/cli.yml
+            cat ~/.circleci/cli.yml
+
+      - run:
           name: Install Pulumi & Scaleway SDK
           command: |
             python3 -m pip install pulumi pulumiverse_scaleway
