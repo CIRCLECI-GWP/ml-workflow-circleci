@@ -155,6 +155,7 @@ jobs:
             mkdir -p workspace
             echo "export DEPLOY_SERVER_HOSTNAME=$(pulumi stack output modelserver_ip  --cwd pulumi --stack  yemiwebby-org/cci-ml-runner/cci-runner-linux)" > workspace/.env
             echo "export DEPLOY_SERVER_USERNAME=demo" >> workspace/.env
+            echo "export DEPLOY_SERVER_PASSWORD=password" >> workspace/.env
             echo "export DEPLOY_SERVER_PATH=/var/models" >> workspace/.env
       - persist_to_workspace:
           root: workspace
