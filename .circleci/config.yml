@@ -289,11 +289,15 @@ jobs:
           at: .
       - populate-env
       - run:
-          name: Setup SSH key for SFTP
+          name: Setup and Validate SSH Private Key
           command: |
             mkdir -p ~/.ssh
-            echo "$MODEL_SERVER_PRIVATE_KEY" > ~/.ssh/id_rsa
+            printf "%s\n" "$MODEL_SERVER_PRIVATE_KEY" > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
+
+            # ✅ Sanity check to validate the key
+            ssh-keygen -lf ~/.ssh/id_rsa || (echo "❌ Invalid SSH key file"; exit 1)
+
       - run:
           name: Debug deploy hostname
           command: |
@@ -330,6 +334,16 @@ jobs:
       - attach_workspace:
           at: .
       - populate-env
+      - run:
+          name: Setup and Validate SSH Private Key
+          command: |
+            mkdir -p ~/.ssh
+            printf "%s\n" "$MODEL_SERVER_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
+            # ✅ Sanity check to validate the key
+            ssh-keygen -lf ~/.ssh/id_rsa || (echo "❌ Invalid SSH key file"; exit 1)
+
       - run:
           command: |
             echo "Hostname should be: $DEPLOY_SERVER_HOSTNAME"
@@ -387,11 +401,13 @@ workflows:
             - package
           context:
             - ml-scaleway-demo
+            - ml-ssh-keys
       - test-deployment:
           requires:
             - deploy
           context:
             - ml-scaleway-demo
+            - ml-ssh-keys
       - approve_destroy:
           type: approval
           requires:
