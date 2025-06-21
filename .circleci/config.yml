@@ -333,11 +333,6 @@ jobs:
             chmod 600 ~/.ssh/id_rsa
 
       - run:
-          name: Install python-dotenv
-          command: |
-            source ./venv/bin/activate
-            pip install python-dotenv
-      - run:
           name: Recreate venv and install dependencies
           command: |
             python3 -m venv venv
