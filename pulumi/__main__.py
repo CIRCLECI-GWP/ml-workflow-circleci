@@ -4,7 +4,6 @@ from pulumiverse_scaleway.instance import Server, Ip
 config = pulumi.Config()
 # Replace this with your actual CircleCI runner token (or read from config/env)
 runner_token = pulumi.Config().require("circleciRunnerToken")
-ssh_key = config.require("modelserver:sshPublicKey")
 
 zone = "fr-par-1"
 
@@ -17,7 +16,7 @@ with open("runner_cloud_init_base.yml") as f:
     cloud_init_runner = f.read().replace("RUNNER_TOKEN", runner_token)
 
 with open("modelserver_cloud_init.yml") as f:
-    cloud_init_modelserver = f.read().replace("${modelserver:sshPublicKey}", ssh_key)
+    cloud_init_modelserver = f.read()
 
 # GPU runner
 modelTrainingCCIRunner = Server(
