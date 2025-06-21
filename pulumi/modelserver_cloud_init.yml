@@ -44,8 +44,8 @@ echo 'demo:demodemo' | chpasswd
 usermod -aG docker demo
 
 # Allow SSH access via password auth
-sed -i 's|PasswordAuthentication no|PasswordAuthentication yes|g' /etc/ssh/sshd_config
-systemctl restart ssh
+# sed -i 's|PasswordAuthentication no|PasswordAuthentication yes|g' /etc/ssh/sshd_config
+# systemctl restart ssh
 
 
 ## Tensorflow time!

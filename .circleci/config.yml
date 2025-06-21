@@ -51,6 +51,14 @@ jobs:
           name: Debug Token Length (just to verify presence)
           command: |
             echo ${#CIRCLECI_CLI_TOKEN}
+
+      - run:
+          name: Setup SSH key for SFTP
+          command: |
+            mkdir -p ~/.ssh
+            echo "$MODEL_SERVER_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
       - run:
           name: Install CircleCI CLI
           command: |
@@ -120,6 +128,9 @@ jobs:
             echo "⚙️ Setting Pulumi config..."
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
 
+            echo "⚙️ Setting Pulumi config SSH Public Key..."
+            pulumi config set cci-ml-runner:sshPublicKey "$MODEL_SERVER_PUBLIC_KEY" --plaintext
+
             echo "🛠️ Preparing cloud-init file..."
             sed "s/RUNNER_TOKEN/${runner_token}/g" runner_cloud_init_base.yml > runner_cloud_init.yml
 
@@ -131,6 +142,8 @@ jobs:
           command: |
             mkdir workspace
             echo "export DEPLOY_SERVER_HOSTNAME=$(pulumi stack output modelserver_ip  --cwd pulumi --stack  yemiwebby-org/cci-ml-runner/cci-runner-linux)" > workspace/.env
+            echo "export DEPLOY_SERVER_USERNAME=demo" >> workspace/.env
+            echo "export DEPLOY_SERVER_PATH=/var/models" >> workspace/.env
       - persist_to_workspace:
           root: workspace
           paths:
@@ -344,6 +357,7 @@ workflows:
             - pulumi
             - scaleway
             - circleci-api
+            - ml-ssh-keys
       - install-build:
           requires:
             - provision_runner
