@@ -33,6 +33,11 @@ users:
     ssh-authorized-keys:
       - {ssh_pub_key}
 runcmd:
+  - mkdir -p /home/demo/.ssh
+  - echo '{ssh_pub_key}' > /home/demo/.ssh/authorized_keys
+  - chown -R demo:demo /home/demo/.ssh
+  - chmod 700 /home/demo/.ssh
+  - chmod 600 /home/demo/.ssh/authorized_keys
   - echo "=== AUTHORIZED_KEYS FOR DEMO ==="
   - cat /home/demo/.ssh/authorized_keys
   - echo "=== END AUTHORIZED_KEYS ==="
