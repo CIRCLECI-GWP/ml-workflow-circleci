@@ -333,12 +333,20 @@ jobs:
             chmod 600 ~/.ssh/id_rsa
 
       - run:
+          name: Ensure Python 3.11 is installed
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y python3.11 python3.11-venv python3.11-distutils
+            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+            sudo update-alternatives --set python3 /usr/bin/python3.11
+
+      - run:
           name: Recreate venv and install dependencies
           command: |
             python3 -m venv venv
             source venv/bin/activate
             pip install --upgrade pip
-            pip install python-dotenv tensorflow pysftp  # add any other dependencies you need
+            pip install python-dotenv tensorflow pysftp
 
       - run:
           command: |
