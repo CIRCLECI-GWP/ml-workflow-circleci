@@ -293,6 +293,10 @@ jobs:
             echo "DEPLOY_SERVER_PASSWORD=$DEPLOY_SERVER_PASSWORD"
 
       - run:
+          name: Show SSH key fingerprint
+          command: ssh-keygen -lf ~/.ssh/id_rsa
+
+      - run:
           name: Ensure Python 3.11 is active
           command: |
             sudo apt-get update
