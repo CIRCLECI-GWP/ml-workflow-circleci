@@ -276,11 +276,11 @@ jobs:
           at: .
       - populate-env
       - run:
-        name: Debug deploy hostname
-        command: |
-          echo "DEPLOY_SERVER_HOSTNAME=$DEPLOY_SERVER_HOSTNAME"
-          echo "DEPLOY_SERVER_USERNAME=$DEPLOY_SERVER_USERNAME"
-          echo "DEPLOY_SERVER_PASSWORD=$DEPLOY_SERVER_PASSWORD"
+          name: Debug deploy hostname
+          command: |
+            echo "DEPLOY_SERVER_HOSTNAME=$DEPLOY_SERVER_HOSTNAME"
+            echo "DEPLOY_SERVER_USERNAME=$DEPLOY_SERVER_USERNAME"
+            echo "DEPLOY_SERVER_PASSWORD=$DEPLOY_SERVER_PASSWORD"
 
       - run:
           name: Ensure Python 3.11 is active
