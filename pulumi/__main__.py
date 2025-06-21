@@ -33,7 +33,7 @@ modelTrainingCCIRunner = Server(
     type="GP1-XS",
     image="ubuntu_jammy",
     ip_id=runner_ip.id,
-    ssh_key_ids=[ssh_key_resource.id],
+    ssh_key_id=ssh_key_resource.id,
     root_volume={
         "size_in_gb": 80,
         "volume_type": "sbs_volume",
@@ -48,7 +48,7 @@ tensorflowServer = Server(
     type="DEV1-L",
     image="ubuntu_jammy",
     ip_id=server_ip.id,
-    ssh_key_ids=[ssh_key_resource.id],
+    ssh_key_id=ssh_key_resource.id,
     root_volume={
         "size_in_gb": 40,
         "volume_type": "sbs_volume",
