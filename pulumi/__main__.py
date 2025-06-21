@@ -1,12 +1,9 @@
 import pulumi
-import pulumiverse_scaleway.iam as scaleway_iam
 from pulumiverse_scaleway.instance import Server, Ip
 
 config = pulumi.Config()
 
 runner_token = config.require("circleciRunnerToken")
-ssh_pub_key = config.require("sshPublicKey")
-
 zone = "fr-par-1"
 
 # Reserve public IPs
@@ -17,8 +14,6 @@ server_ip = Ip("serverPublicIp", zone=zone)
 with open("runner_cloud_init_base.yml") as f:
     cloud_init_runner = f.read().replace("RUNNER_TOKEN", runner_token)
 cloud_init_runner = f"""#cloud-config
-ssh_authorized_keys:
-  - {ssh_pub_key}
 {cloud_init_runner}
 """
 

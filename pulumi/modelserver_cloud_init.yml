@@ -3,7 +3,7 @@
 # Docker Engine installation
 # Taken from https://www.scaleway.com/en/docs/tutorials/install-docker-ubuntu-jammy-jellyfish/ 
 
-apt update -y && apt-upgrade -y
+apt update -y && apt upgrade -y
 
 # Install packages that are required to download the required packages for Docker using apt via an HTTPS connection.
 apt install ca-certificates curl gnupg
@@ -38,7 +38,7 @@ mkdir /home/demo
 chown demo:demo /home/demo
 # # set demo user password  
 # Warning! hardcoded for demo purpose as this server is short-lived
-echo 'demo:demodemo' | chpasswd
+# echo 'demo:demodemo' | chpasswd
 
 # add demo user to docker group 
 usermod -aG docker demo

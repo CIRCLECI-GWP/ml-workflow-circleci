@@ -52,23 +52,6 @@ jobs:
             echo ${#CIRCLECI_CLI_TOKEN}
 
       - run:
-          name: Generate ephemeral SSH key for model server
-          command: |
-            mkdir -p workspace
-            ssh-keygen -t rsa -b 4096 -f /tmp/id_rsa_modelserver -N ""
-            cat /tmp/id_rsa_modelserver.pub > workspace/modelserver.pub
-            cat /tmp/id_rsa_modelserver > workspace/modelserver
-      - persist_to_workspace:
-          root: workspace
-          paths:
-            - modelserver.pub
-            - modelserver
-
-      - run:
-          name: Show generated public key
-          command: cat workspace/modelserver.pub
-
-      - run:
           name: Install CircleCI CLI
           command: |
             # Make CircleCI CLI available at /usr/local/bin/circleci
@@ -137,14 +120,8 @@ jobs:
             echo "⚙️ Setting Pulumi config..."
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
 
-            echo "⚙️ Setting Pulumi config SSH Public Key..."
-            pulumi config set cci-ml-runner:sshPublicKey "$(cat ../workspace/modelserver.pub)" --plaintext
-
             echo "🛠️ Preparing cloud-init file..."
             sed "s/RUNNER_TOKEN/${runner_token}/g" runner_cloud_init_base.yml > runner_cloud_init.yml
-
-
-            pulumi config get cci-ml-runner:sshPublicKey
 
       - pulumi/update:
           stack: yemiwebby-org/cci-ml-runner/cci-runner-linux
@@ -301,14 +278,12 @@ jobs:
       - attach_workspace:
           at: .
       - populate-env
-      - attach_workspace:
-          at: /tmp
       - run:
-          name: Setup SSH key for SFTP/SSH
+          name: Setup SSH Private Key
           command: |
             mkdir -p ~/.ssh
-            cp /tmp/modelserver ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
+            echo "$MODEL_SERVER_SSH_KEY" | base64 --decode > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
 
       - run:
           name: Debug deploy hostname
@@ -346,14 +321,12 @@ jobs:
       - attach_workspace:
           at: .
       - populate-env
-      - attach_workspace:
-          at: /tmp
       - run:
-          name: Setup SSH key for SFTP/SSH
+          name: Setup SSH Private Key
           command: |
             mkdir -p ~/.ssh
-            cp /tmp/modelserver ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
+            echo "$MODEL_SERVER_SSH_KEY" | base64 --decode > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
 
       - run:
           command: |
