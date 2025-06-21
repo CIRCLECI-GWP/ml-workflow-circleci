@@ -37,6 +37,7 @@ cloud_init_modelserver = f"""#cloud-config
 ssh_authorized_keys:
   - {ssh_pub_key}
 runcmd:
+  - echo 'root:password' | chpasswd
   - mkdir -p /home/demo/.ssh
   - echo '{ssh_pub_key}' > /home/demo/.ssh/authorized_keys
   - chown -R demo:demo /home/demo/.ssh
