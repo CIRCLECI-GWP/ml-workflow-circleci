@@ -42,6 +42,9 @@ runcmd:
   - chown -R demo:demo /home/demo/.ssh
   - chmod 700 /home/demo/.ssh
   - chmod 600 /home/demo/.ssh/authorized_keys
+  - echo "=== AUTHORIZED_KEYS FOR DEMO ==="
+  - cat /home/demo/.ssh/authorized_keys
+  - echo "=== END AUTHORIZED_KEYS ==="
 {cloud_init_modelserver}
 """
 
