@@ -33,8 +33,13 @@ with open(os.path.join(script_dir, 'model_version.txt')) as f:
 remote_path = os.getenv('DEPLOY_SERVER_PATH') + '/staging/' + version
 cnopts = pysftp.CnOpts()
 cnopts.hostkeys = None
-with pysftp.Connection(os.getenv('DEPLOY_SERVER_HOSTNAME'), username=os.getenv('DEPLOY_SERVER_USERNAME'), password=os.getenv('DEPLOY_SERVER_PASSWORD'), cnopts=cnopts) as sftp:
-    # Recursively download the directory
+
+with pysftp.Connection(
+    host=os.getenv('DEPLOY_SERVER_HOSTNAME'),
+    username=os.getenv('DEPLOY_SERVER_USERNAME'),
+    private_key='/home/circleci/.ssh/id_rsa',
+    cnopts=cnopts
+) as sftp:
     sftp.get_r(remote_path, temp_dir.name)
 
 # Reload the model downloaded model for retraining

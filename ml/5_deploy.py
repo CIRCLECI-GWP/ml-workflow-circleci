@@ -47,8 +47,12 @@ print('Deployment command commencing: ' + command)
 # Initialize the SSH client - in production, you should validate the host fingerprint and use key based authentication
 client = paramiko.SSHClient() 
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-client.connect(hostname=os.getenv('DEPLOY_SERVER_HOSTNAME'), username=os.getenv(
-    'DEPLOY_SERVER_USERNAME'), password=os.getenv('DEPLOY_SERVER_PASSWORD'))
+
+client.connect(
+    hostname=os.getenv('DEPLOY_SERVER_HOSTNAME'),
+    username=os.getenv('DEPLOY_SERVER_USERNAME'),
+    key_filename='/home/circleci/.ssh/id_rsa'
+)
 
 # Execute the command - if there is an error, raise an exception so the CI/CD pipeline step fails
 stdin, stdout, stderr = client.exec_command(command)
