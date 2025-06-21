@@ -48,6 +48,18 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Setup and Validate SSH Private Key
+          command: |
+            mkdir -p ~/.ssh
+            printf "%s\n" "$MODEL_SERVER_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
+            # Show first few lines to confirm format
+            head -n 5 ~/.ssh/id_rsa
+
+            # ✅ Sanity check to validate the key
+            ssh-keygen -lf ~/.ssh/id_rsa || (echo "❌ Invalid SSH key file"; exit 1)
+      - run:
           name: Debug Token Length (just to verify presence)
           command: |
             echo ${#CIRCLECI_CLI_TOKEN}
@@ -340,6 +352,9 @@ jobs:
             mkdir -p ~/.ssh
             printf "%s\n" "$MODEL_SERVER_PRIVATE_KEY" > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
+
+            # Show first few lines to confirm format
+            head -n 5 ~/.ssh/id_rsa
 
             # ✅ Sanity check to validate the key
             ssh-keygen -lf ~/.ssh/id_rsa || (echo "❌ Invalid SSH key file"; exit 1)
