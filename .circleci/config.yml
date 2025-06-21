@@ -282,8 +282,8 @@ jobs:
           name: Setup SSH Private Key
           command: |
             mkdir -p ~/.ssh
-            echo "$MODEL_SERVER_SSH_KEY" | base64 --decode > ~/.ssh/id_ed25519
-            chmod 600 ~/.ssh/id_ed25519
+            echo "$MODEL_SERVER_SSH_KEY" | base64 --decode > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
 
       - run:
           name: Debug deploy hostname
@@ -325,8 +325,8 @@ jobs:
           name: Setup SSH Private Key
           command: |
             mkdir -p ~/.ssh
-            echo "$MODEL_SERVER_SSH_KEY" | base64 --decode > ~/.ssh/id_ed25519
-            chmod 600 ~/.ssh/id_ed25519
+            echo "$MODEL_SERVER_SSH_KEY" | base64 --decode > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
 
       - run:
           command: |
