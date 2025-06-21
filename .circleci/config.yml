@@ -51,8 +51,10 @@ jobs:
           name: Setup and Validate SSH Private Key.
           command: |
             mkdir -p ~/.ssh
-            printf "%s\n" "$MODEL_SERVER_PRIVATE_KEY" > ~/.ssh/id_rsa
+            echo "$MODEL_SERVER_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
+
+            echo "$MODEL_SERVER_PRIVATE_KEY" | base64 -d | head -n 5
 
             # Show first few lines to confirm format
             head -n 5 ~/.ssh/id_rsa
