@@ -62,30 +62,10 @@ jobs:
           command: |
             circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN"
 
-      # - run:
-      #     name: Install Pulumi & Scaleway SDK
-      #     command: |
-      #       python3 -m pip install pulumi pulumiverse_scaleway
-
       - run:
-          name: Install Pulumi CLI and Scaleway SDK (system-wide)
+          name: Install Pulumi & Scaleway SDK
           command: |
-            curl -fsSL https://get.pulumi.com | sh
-            echo 'export PATH=$HOME/.pulumi/bin:$PATH' >> $BASH_ENV
-            source $BASH_ENV
-            pip install pulumiverse_scaleway
-
-      - run:
-          name: Generate SSH Key for model server
-          command: |
-            ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_circleci -N "" -C "circleci@deploy"
-            cat ~/.ssh/id_rsa_circleci.pub
-      # - run:
-      #     name: Login & set Pulumi config
-      #     command: |
-      #       cd pulumi
-      #       pulumi stack select yemiwebby-org/cci-ml-runner/cci-runner-linux
-      #       pulumi config set modelserver:sshPublicKey "$(cat ~/.ssh/id_rsa_circleci.pub)" --plaintext
+            python3 -m pip install pulumi pulumiverse_scaleway
 
       - pulumi/login
 
@@ -93,6 +73,16 @@ jobs:
           name: Provision new runner and prepare cloud-init file
           command: |
             RESOURCE_CLASS="tutorial-gwp/scaleway-linux-${CIRCLE_WORKFLOW_ID}"
+
+            echo "🔎 Checking for existing resource class: ${RESOURCE_CLASS}"
+
+            if [ -z "$RESOURCE_CLASS" ]; then
+              echo "❌ RESOURCE_CLASS is empty. Exiting."
+              exit 1
+            fi
+
+            echo "📋 Listing all available resource classes:"
+            circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN"
 
             if circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN" | awk '{print $1}' | grep -Fxq "${RESOURCE_CLASS}"; then
               echo "ℹ️ Resource class '${RESOURCE_CLASS}' already exists. Skipping creation."
@@ -106,6 +96,13 @@ jobs:
             runner_token_response=$(circleci runner token create "${RESOURCE_CLASS}" "${RESOURCE_CLASS##*/}" --token "$CIRCLECI_CLI_TOKEN")
             runner_token=$(echo "$runner_token_response" | grep "token:" | awk '{print $2}')
 
+            if [ -z "$runner_token" ]; then
+              echo "❌ Failed to extract runner token. Exiting."
+              exit 1
+            fi
+
+            echo "✅ Runner token created: ${#runner_token} characters long"
+
             echo "📁 Moving into Pulumi folder..."
             cd pulumi
 
@@ -117,9 +114,8 @@ jobs:
             pip install --upgrade pip
             pip install pulumi pulumiverse_scaleway
 
+            echo "📌 Selecting Pulumi stack..."
             pulumi stack select yemiwebby-org/cci-ml-runner/cci-runner-linux
-
-            pulumi config set cci-ml-runner:modelserver:sshPublicKey "$(cat ~/.ssh/id_rsa_circleci.pub)" --plaintext
 
             echo "⚙️ Setting Pulumi config..."
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
@@ -135,12 +131,10 @@ jobs:
           command: |
             mkdir workspace
             echo "export DEPLOY_SERVER_HOSTNAME=$(pulumi stack output modelserver_ip  --cwd pulumi --stack  yemiwebby-org/cci-ml-runner/cci-runner-linux)" > workspace/.env
-            cp ~/.ssh/id_rsa_circleci workspace/id_rsa_circleci
       - persist_to_workspace:
           root: workspace
           paths:
             - .env
-            - id_rsa_circleci
 
   destroy_runner:
     docker:
@@ -282,19 +276,11 @@ jobs:
           at: .
       - populate-env
       - run:
-          name: Add private SSH key for server
-          command: |
-            mkdir -p ~/.ssh
-            cp id_rsa_circleci ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
-            eval $(ssh-agent -s)
-            ssh-add ~/.ssh/id_rsa
-      - run:
-          name: Debug deploy hostname
-          command: |
-            echo "DEPLOY_SERVER_HOSTNAME=$DEPLOY_SERVER_HOSTNAME"
-            echo "DEPLOY_SERVER_USERNAME=$DEPLOY_SERVER_USERNAME"
-            echo "DEPLOY_SERVER_PASSWORD=$DEPLOY_SERVER_PASSWORD"
+        name: Debug deploy hostname
+        command: |
+          echo "DEPLOY_SERVER_HOSTNAME=$DEPLOY_SERVER_HOSTNAME"
+          echo "DEPLOY_SERVER_USERNAME=$DEPLOY_SERVER_USERNAME"
+          echo "DEPLOY_SERVER_PASSWORD=$DEPLOY_SERVER_PASSWORD"
 
       - run:
           name: Ensure Python 3.11 is active
