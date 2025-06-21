@@ -52,19 +52,16 @@ jobs:
             echo ${#CIRCLECI_CLI_TOKEN}
 
       - run:
-          name: Setup and Validate SSH Private Key.
+          name: Generate ephemeral SSH key for model server
           command: |
-            mkdir -p ~/.ssh
-            echo "$MODEL_SERVER_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
-
-            echo "$MODEL_SERVER_PRIVATE_KEY" | base64 -d | head -n 5
-
-            # Show first few lines to confirm format
-            head -n 5 ~/.ssh/id_rsa
-
-            # ✅ Sanity check to validate the key
-            ssh-keygen -lf ~/.ssh/id_rsa || (echo "❌ Invalid SSH key file"; exit 1)
+            ssh-keygen -t rsa -b 4096 -f /tmp/id_rsa_modelserver -N ""
+            cat /tmp/id_rsa_modelserver.pub > workspace/modelserver.pub
+            cat /tmp/id_rsa_modelserver > workspace/modelserver
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - modelserver.pub
+            - modelserver
 
       - run:
           name: Install CircleCI CLI
@@ -136,7 +133,7 @@ jobs:
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
 
             echo "⚙️ Setting Pulumi config SSH Public Key..."
-            pulumi config set cci-ml-runner:sshPublicKey "$MODEL_SERVER_PUBLIC_KEY" --plaintext
+            pulumi config set cci-ml-runner:sshPublicKey "$(cat ../workspace/modelserver.pub)" --plaintext
 
             echo "🛠️ Preparing cloud-init file..."
             sed "s/RUNNER_TOKEN/${runner_token}/g" runner_cloud_init_base.yml > runner_cloud_init.yml
@@ -295,21 +292,14 @@ jobs:
       - attach_workspace:
           at: .
       - populate-env
-
+      - attach_workspace:
+          at: /tmp
       - run:
-          name: Setup and Validate SSH Private Key.
+          name: Setup SSH key for SFTP/SSH
           command: |
             mkdir -p ~/.ssh
-            echo "$MODEL_SERVER_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+            cp /tmp/modelserver ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
-
-            echo "$MODEL_SERVER_PRIVATE_KEY" | base64 -d | head -n 5
-
-            # Show first few lines to confirm format
-            head -n 5 ~/.ssh/id_rsa
-
-            # ✅ Sanity check to validate the key
-            ssh-keygen -lf ~/.ssh/id_rsa || (echo "❌ Invalid SSH key file"; exit 1)
 
       - run:
           name: Debug deploy hostname
@@ -347,20 +337,14 @@ jobs:
       - attach_workspace:
           at: .
       - populate-env
+      - attach_workspace:
+          at: /tmp
       - run:
-          name: Setup and Validate SSH Private Key.
+          name: Setup SSH key for SFTP/SSH
           command: |
             mkdir -p ~/.ssh
-            echo "$MODEL_SERVER_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+            cp /tmp/modelserver ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
-
-            echo "$MODEL_SERVER_PRIVATE_KEY" | base64 -d | head -n 5
-
-            # Show first few lines to confirm format
-            head -n 5 ~/.ssh/id_rsa
-
-            # ✅ Sanity check to validate the key
-            ssh-keygen -lf ~/.ssh/id_rsa || (echo "❌ Invalid SSH key file"; exit 1)
 
       - run:
           command: |

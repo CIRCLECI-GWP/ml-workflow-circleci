@@ -22,60 +22,22 @@ ssh_authorized_keys:
 {cloud_init_runner}
 """
 
-# with open("modelserver_cloud_init.yml") as f:
-#     cloud_init_modelserver = f.read()
-# cloud_init_modelserver = f"""#cloud-config
-# ssh_authorized_keys:
-#   - {ssh_pub_key}
-# {cloud_init_modelserver}
-# """
-
 with open("modelserver_cloud_init.yml") as f:
     cloud_init_modelserver = f.read()
 
-your_root_hash = "$6$randomsalt$f75bbf9a0d657fb491d5c608404f4a209220d4955fc1d2bb0dc68409488b0a951ffdc50156b1275bad0f9e00102ea41fc0339edbf1101eec03375303199540fb"
-your_demo_hash = "$6$randomsalt$f75bbf9a0d657fb491d5c608404f4a209220d4955fc1d2bb0dc68409488b0a951ffdc50156b1275bad0f9e00102ea41fc0339edbf1101eec03375303199540fb"
-
 cloud_init_modelserver = f"""#cloud-config
 users:
-  - name: root
-    lock_passwd: false
-    passwd: {your_root_hash}
-    shell: /bin/bash
   - name: demo
-    lock_passwd: false
-    passwd: {your_demo_hash}
     shell: /bin/bash
-ssh_authorized_keys:
-  - {ssh_pub_key}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh-authorized-keys:
+      - {ssh_pub_key}
 runcmd:
-  - mkdir -p /home/demo/.ssh
-  - echo '{ssh_pub_key}' > /home/demo/.ssh/authorized_keys
-  - chown -R demo:demo /home/demo/.ssh
-  - chmod 700 /home/demo/.ssh
-  - chmod 600 /home/demo/.ssh/authorized_keys
   - echo "=== AUTHORIZED_KEYS FOR DEMO ==="
   - cat /home/demo/.ssh/authorized_keys
   - echo "=== END AUTHORIZED_KEYS ==="
 {cloud_init_modelserver}
 """
-
-
-# cloud_init_modelserver = f"""#cloud-config
-# ssh_authorized_keys:
-#   - {ssh_pub_key}
-# runcmd:
-#   - echo 'root:password' | chpasswd
-#   - mkdir -p /home/demo/.ssh
-#   - echo '{ssh_pub_key}' > /home/demo/.ssh/authorized_keys
-#   - chown -R demo:demo /home/demo/.ssh
-#   - chmod 700 /home/demo/.ssh
-#   - chmod 600 /home/demo/.ssh/authorized_keys
-#   - echo "=== AUTHORIZED_KEYS FOR DEMO ==="
-#   - cat /home/demo/.ssh/authorized_keys
-#   - echo "=== END AUTHORIZED_KEYS ==="
-# {cloud_init_modelserver}
-# """
 
 # GPU runner
 modelTrainingCCIRunner = Server(
