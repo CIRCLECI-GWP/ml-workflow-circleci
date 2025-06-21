@@ -22,11 +22,26 @@ ssh_authorized_keys:
 {cloud_init_runner}
 """
 
+# with open("modelserver_cloud_init.yml") as f:
+#     cloud_init_modelserver = f.read()
+# cloud_init_modelserver = f"""#cloud-config
+# ssh_authorized_keys:
+#   - {ssh_pub_key}
+# {cloud_init_modelserver}
+# """
+
 with open("modelserver_cloud_init.yml") as f:
     cloud_init_modelserver = f.read()
+
 cloud_init_modelserver = f"""#cloud-config
 ssh_authorized_keys:
   - {ssh_pub_key}
+runcmd:
+  - mkdir -p /home/demo/.ssh
+  - echo '{ssh_pub_key}' > /home/demo/.ssh/authorized_keys
+  - chown -R demo:demo /home/demo/.ssh
+  - chmod 700 /home/demo/.ssh
+  - chmod 600 /home/demo/.ssh/authorized_keys
 {cloud_init_modelserver}
 """
 
