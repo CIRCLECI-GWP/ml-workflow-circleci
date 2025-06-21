@@ -26,21 +26,17 @@ with open("modelserver_cloud_init.yml") as f:
     cloud_init_modelserver = f.read()
 
 cloud_init_modelserver = f"""#cloud-config
+ssh_pwauth: true
 users:
   - name: demo
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
-    ssh-authorized-keys:
-      - {ssh_pub_key}
+    lock_passwd: false
+    passwd: "$6$randomsalt$f75bbf9a0d657fb491d5c608404f4a209220d4955fc1d2bb0dc68409488b0a951ffdc50156b1275bad0f9e00102ea41fc0339edbf1101eec03375303199540fb"
 runcmd:
-  - mkdir -p /home/demo/.ssh
-  - echo '{ssh_pub_key}' > /home/demo/.ssh/authorized_keys
-  - chown -R demo:demo /home/demo/.ssh
-  - chmod 700 /home/demo/.ssh
-  - chmod 600 /home/demo/.ssh/authorized_keys
-  - echo "=== AUTHORIZED_KEYS FOR DEMO ==="
-  - cat /home/demo/.ssh/authorized_keys
-  - echo "=== END AUTHORIZED_KEYS ==="
+  - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - sed -i 's/^#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - systemctl restart ssh
 {cloud_init_modelserver}
 """
 
