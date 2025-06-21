@@ -355,6 +355,13 @@ jobs:
             chmod 600 ~/.ssh/id_rsa
 
       - run:
+          name: Show private key type
+          command: head -5 ~/.ssh/id_rsa
+      - run:
+          name: Show SSH key fingerprint
+          command: ssh-keygen -lf ~/.ssh/id_rsa
+
+      - run:
           name: Ensure Python 3.11 is installed
           command: |
             sudo apt-get update
