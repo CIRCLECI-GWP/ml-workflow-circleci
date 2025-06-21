@@ -337,6 +337,13 @@ jobs:
           command: |
             source ./venv/bin/activate
             pip install python-dotenv
+      - run:
+          name: Recreate venv and install dependencies
+          command: |
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install python-dotenv tensorflow pysftp  # add any other dependencies you need
 
       - run:
           command: |
