@@ -333,6 +333,12 @@ jobs:
             chmod 600 ~/.ssh/id_rsa
 
       - run:
+          name: Install python-dotenv
+          command: |
+            source ./venv/bin/activate
+            pip install python-dotenv
+
+      - run:
           command: |
             echo "Hostname should be: $DEPLOY_SERVER_HOSTNAME"
       - run:
