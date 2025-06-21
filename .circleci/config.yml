@@ -54,6 +54,7 @@ jobs:
       - run:
           name: Generate ephemeral SSH key for model server
           command: |
+            mkdir -p workspace
             ssh-keygen -t rsa -b 4096 -f /tmp/id_rsa_modelserver -N ""
             cat /tmp/id_rsa_modelserver.pub > workspace/modelserver.pub
             cat /tmp/id_rsa_modelserver > workspace/modelserver
