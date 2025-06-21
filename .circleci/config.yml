@@ -125,7 +125,7 @@ jobs:
             python3.11 -m venv venv
             source venv/bin/activate
 
-            echo "⬆️ Installing Pulumi SDK and dependencies..."
+            echo "⬆️ Installing Pulumi SDK and dependencies...."
             pip install --upgrade pip
             pip install pulumi pulumiverse_scaleway
 
