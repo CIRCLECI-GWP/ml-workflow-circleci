@@ -1,12 +1,19 @@
 import pulumi
+import pulumiverse_scaleway.iam as scaleway_iam
 from pulumiverse_scaleway.instance import Server, Ip
 
 config = pulumi.Config()
 # Replace this with your actual CircleCI runner token (or read from config/env)
 runner_token = config.require("circleciRunnerToken")
-ssh_key = config.require("sshPublicKey")
+ssh_pub_key = config.require("sshPublicKey")
 
 zone = "fr-par-1"
+
+ssh_key_resource = scaleway_iam.SshKey(
+    "modelserver-ssh-key",
+    name="modelserver-key",
+    public_key=ssh_pub_key,
+)
 
 # Reserve public IPs
 runner_ip = Ip("runnerPublicIp", zone=zone)
@@ -26,7 +33,7 @@ modelTrainingCCIRunner = Server(
     type="GP1-XS",
     image="ubuntu_jammy",
     ip_id=runner_ip.id,
-    ssh_key=ssh_key,
+    ssh_key_ids=[ssh_key_resource.id],
     root_volume={
         "size_in_gb": 80,
         "volume_type": "sbs_volume",
@@ -41,7 +48,7 @@ tensorflowServer = Server(
     type="DEV1-L",
     image="ubuntu_jammy",
     ip_id=server_ip.id,
-    ssh_key=ssh_key,
+    ssh_key_ids=[ssh_key_resource.id],
     root_volume={
         "size_in_gb": 40,
         "volume_type": "sbs_volume",
