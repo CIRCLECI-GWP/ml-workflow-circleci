@@ -36,6 +36,9 @@ commands = (
     'rm -rf "./prod/' + version + '"',
     # The TensorFlow Serving docker container launched by tools/install_server.sh will read models from the prod directory
     'cp -r "' + remote_staging_path + '" ./prod',
+
+    'docker ps -a --format "{{.Names}}" | grep -w tensorflow_serving || docker create --name tensorflow_serving -p 8501:8501 -v /var/models/prod:/models/my_model -e MODEL_NAME=my_model tensorflow/serving',
+    
     # Restart the docker container
     'docker restart tensorflow_serving'
 )
