@@ -276,7 +276,7 @@ jobs:
             curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
             python3 --version
       - run:
-          name: Recreate virtual environment & install TensorFlow
+          name: Recreate virtual environment & install TensorFlow.
           command: |
             python3 -m venv venv
             source ./venv/bin/activate
