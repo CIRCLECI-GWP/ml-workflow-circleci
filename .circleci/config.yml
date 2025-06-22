@@ -167,22 +167,22 @@ jobs:
     executor: default_linux_machine
     steps:
       - checkout
-      - setup-python-venv:
-          tensorflow: true
-      # - run:
-      #     name: Install Python 3.11 with pip
-      #     command: |
-      #       sudo apt update
-      #       sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
-      #       curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
+      # - setup-python-venv:
+      #     tensorflow: true
+      - run:
+          name: Install Python 3.11 with pip
+          command: |
+            sudo apt update
+            sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
+            curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
 
-      # - run:
-      #     name: Create venv and install deps
-      #     command: |
-      #       python3.11 -m venv venv
-      #       source venv/bin/activate
-      #       python -m pip install --upgrade pip
-      #       bash ./tools/install.sh
+      - run:
+          name: Create venv and install deps
+          command: |
+            python3.11 -m venv venv
+            source venv/bin/activate
+            python -m pip install --upgrade pip
+            bash ./tools/install.sh
 
       - run:
           name: Build the model
