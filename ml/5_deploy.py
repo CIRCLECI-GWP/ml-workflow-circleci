@@ -61,6 +61,9 @@ client.connect(
 stdin, stdout, stderr = client.exec_command(command)
 print(stdout.read().decode())
 err = stderr.read().decode()
+out = stdout.read().decode()
 stdin.close()  # https://github.com/paramiko/paramiko/issues/1617
-if err:
+if "Error" in err or "Exception" in err or "not found" in err:
     raise Exception(err)
+print(out)
+print(err)
