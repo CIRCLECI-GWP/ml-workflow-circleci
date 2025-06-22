@@ -1,5 +1,6 @@
 import pulumi
 from pulumiverse_scaleway.instance import Server, Ip
+import os
 
 config = pulumi.Config()
 
@@ -20,18 +21,29 @@ cloud_init_runner = f"""#cloud-config
 with open("modelserver_cloud_init.yml") as f:
     cloud_init_modelserver = f.read()
 
+with open(os.path.expanduser("~/.ssh/id_rsa_modelserver.pub")) as f:
+    public_key = f.read().strip()
+
 cloud_init_modelserver = f"""#cloud-config
-ssh_pwauth: true
 users:
   - name: demo
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
-    lock_passwd: false
-    passwd: "$6$randomsalt$f75bbf9a0d657fb491d5c608404f4a209220d4955fc1d2bb0dc68409488b0a951ffdc50156b1275bad0f9e00102ea41fc0339edbf1101eec03375303199540fb"
+    groups: docker
+    home: /home/demo
+    create_groups: true
+    ssh-authorized-keys:
+      - {public_key} 
+
+package_update: true
+package_upgrade: true
+packages:
+  - docker.io
+
 runcmd:
-  - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-  - sed -i 's/^#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-  - systemctl restart ssh
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker demo
 {cloud_init_modelserver}
 """
 
