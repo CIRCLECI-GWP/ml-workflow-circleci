@@ -50,7 +50,7 @@ client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 client.connect(
     hostname=os.getenv('DEPLOY_SERVER_HOSTNAME'),
-    username=os.getenv('DEPLOY_SERVER_USERNAME'),
+    username="root",
     key_filename='/home/circleci/.ssh/id_rsa'
 )
 
