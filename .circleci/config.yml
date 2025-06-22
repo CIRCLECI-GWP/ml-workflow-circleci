@@ -394,6 +394,11 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - run:
+          name: Install requests
+          command: |
+            source ./venv/bin/activate
+            pip install requests
       - wait-5
       - run:
           command: source ./venv/bin/activate && python3 ./ml/7_test_deployed_model.py
