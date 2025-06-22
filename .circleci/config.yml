@@ -167,8 +167,6 @@ jobs:
     executor: default_linux_machine
     steps:
       - checkout
-      # - setup-python-venv:
-      #     tensorflow: true
       - run:
           name: Install Python 3.11 with pip
           command: |
@@ -203,8 +201,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      # - setup-python-venv:
-      #     tensorflow: true
       - run:
           name: Install Python 3.11 and set as default
           command: |
@@ -239,8 +235,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      # - setup-python-venv:
-      #     tensorflow: true
       - run:
           name: Install Python 3.11 and set as default
           command: |
