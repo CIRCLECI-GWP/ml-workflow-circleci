@@ -1,60 +1,47 @@
 #!/bin/bash
 
-# Docker Engine installation
-# Taken from https://www.scaleway.com/en/docs/tutorials/install-docker-ubuntu-jammy-jellyfish/ 
+set -e
 
+# Update and upgrade system packages
 apt update -y && apt upgrade -y
 
-# Install packages that are required to download the required packages for Docker using apt via an HTTPS connection.
-apt install ca-certificates curl gnupg
+# Install required packages for Docker installation
+apt install -y ca-certificates curl gnupg
 
-# Add the official Docker GPG key to validate the downloaded packages.
+# Add the official Docker GPG key
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
 
-# Configure the Docker repository:
+# Configure the Docker repository
 echo \
-"deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-"$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+$(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
 tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# Install Docker Engine with apt
+# Install Docker Engine and plugins
 apt update -y
-apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 echo "Docker installed: $(docker --version)"
-# Docker hopefully installed!
 
-# Create the directories and grant permissions so that the user defined in the .env file and docker can read/write to them
-sudo mkdir -p /var/models/staging # so that docker will have something to bind to, it will be populated later
-sudo mkdir -p /var/models/prod
-sudo chown -R $USER:docker /var/models
-sudo chmod -R 775 /var/models
+# Create model directories and set permissions
+mkdir -p /var/models/staging /var/models/prod
+chown -R $USER:docker /var/models
+chmod -R 775 /var/models
 
-# Create demo user for sftp upload
-useradd demo
-mkdir /home/demo
-chown demo:demo /home/demo
-# # set demo user password  
-# Warning! hardcoded for demo purpose as this server is short-lived
-# echo 'demo:demodemo' | chpasswd
-
-# add demo user to docker group 
+# Create demo user for SFTP upload if not exists
+if ! id demo &>/dev/null; then
+  useradd -m -s /bin/bash demo
+fi
 usermod -aG docker demo
 
-# Allow SSH access via password auth
-# sed -i 's|PasswordAuthentication no|PasswordAuthentication yes|g' /etc/ssh/sshd_config
-# systemctl restart ssh
-
-
-## Tensorflow time!
-
-# Download the TensorFlow Serving Docker image and repo
+# Download TensorFlow Serving Docker image
 docker pull tensorflow/serving
 
-# Create a TensorFlow Serving container with the directories configured for use with this example
-docker run -d --name tensorflow_serving -p 8501:8501 -v /var/models/prod:/models/my_model -e MODEL_NAME=my_model tensorflow/serving
-
-# Until you publish your model to TensorFlow Serving, you will receive this message: Did you forget to name your leaf directory as a number (eg. '/1/')?
-# If you see this message in the Docker output, it means that the container is running successfully
+# Run TensorFlow Serving container (if not already running)
+if ! docker ps -a --format '{{.Names}}' | grep -w tensorflow_serving; then
+  docker run -d --name tensorflow_serving -p 8501:8501 \
+    -v /var/models/prod:/models/my_model \
+    -e MODEL_NAME=my_model tensorflow/serving
+fi

@@ -3,16 +3,10 @@ version: 2.1
 orbs:
   pulumi: pulumi/pulumi@2.1.0
 
-# executors:
-#   # One freshly baked runner, straight from the boulang... err, pipeline
-#   default_linux_machine:
-#     machine:
-#       image: "ubuntu-2204:2023.10.1"
 executors:
   default_linux_machine:
     machine:
       image: ubuntu-2204:current
-    # resource_class: tutorial-gwp/scaleway-linux-<< pipeline.number >>
 # See https://circleci.com/docs/reusing-config/#authoring-reusable-commands
 commands:
   check-python:
@@ -36,6 +30,27 @@ commands:
       - run:
           command: sleep 5
           name: Wait 5 seconds
+  setup-python-venv:
+    parameters:
+      tensorflow: { type: boolean, default: false }
+      extra-packages:
+        type: string
+        default: ""
+    steps:
+      - run:
+          name: Install Python 3.11 and pip
+          command: |
+            sudo apt update
+            sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
+            curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
+      - run:
+          name: Create venv and install deps
+          command: |
+            python3.11 -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            if [ "<< parameters.tensorflow >>" = "true" ]; then pip install tensorflow; fi
+            if [ ! -z "<< parameters.extra-packages >>" ]; then pip install << parameters.extra-packages >>; fi
 
 # Define custom jobs for this config
 # See: https://circleci.com/docs/jobs-steps/
@@ -59,11 +74,6 @@ jobs:
             curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
 
       - run:
-          name: List resource-classes with token explicitly
-          command: |
-            circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN"
-
-      - run:
           name: Install Pulumi & Scaleway SDK
           command: |
             python3 -m pip install pulumi pulumiverse_scaleway
@@ -75,53 +85,50 @@ jobs:
           command: |
             RESOURCE_CLASS="tutorial-gwp/scaleway-linux-${CIRCLE_WORKFLOW_ID}"
 
-            echo "🔎 Checking for existing resource class: ${RESOURCE_CLASS}"
+            echo "Checking for existing resource class: ${RESOURCE_CLASS}"
 
             if [ -z "$RESOURCE_CLASS" ]; then
-              echo "❌ RESOURCE_CLASS is empty. Exiting."
+              echo " RESOURCE_CLASS is empty. Exiting."
               exit 1
             fi
 
-            echo "📋 Listing all available resource classes:"
-            circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN"
-
             if circleci runner resource-class list tutorial-gwp --token "$CIRCLECI_CLI_TOKEN" | awk '{print $1}' | grep -Fxq "${RESOURCE_CLASS}"; then
-              echo "ℹ️ Resource class '${RESOURCE_CLASS}' already exists. Skipping creation."
+              echo " Resource class '${RESOURCE_CLASS}' already exists. Skipping creation."
             else
-              echo "🚀 Creating resource class '${RESOURCE_CLASS}'..."
+              echo "Creating resource class '${RESOURCE_CLASS}'..."
               circleci runner resource-class create "${RESOURCE_CLASS}" \
                 "Autoprovisioned Linux runner on Scaleway"
             fi
 
-            echo "🔑 Generating new runner token..."
+            echo "Generating new runner token..."
             runner_token_response=$(circleci runner token create "${RESOURCE_CLASS}" "${RESOURCE_CLASS##*/}" --token "$CIRCLECI_CLI_TOKEN")
             runner_token=$(echo "$runner_token_response" | grep "token:" | awk '{print $2}')
 
             if [ -z "$runner_token" ]; then
-              echo "❌ Failed to extract runner token. Exiting."
+              echo "Failed to extract runner token. Exiting."
               exit 1
             fi
 
-            echo "✅ Runner token created: ${#runner_token} characters long"
+            echo "Runner token created: ${#runner_token} characters long"
 
-            echo "📁 Moving into Pulumi folder..."
+            echo "Moving into Pulumi folder..."
             cd pulumi
 
-            echo "🐍 Creating venv with Python 3.11 explicitly..."
+            echo "Creating venv with Python 3.11 explicitly..."
             python3.11 -m venv venv
             source venv/bin/activate
 
-            echo "⬆️ Installing Pulumi SDK and dependencies...."
+            echo "Installing Pulumi SDK and dependencies...."
             pip install --upgrade pip
             pip install pulumi pulumiverse_scaleway
 
-            echo "📌 Selecting Pulumi stack..."
+            echo "Selecting Pulumi stack..."
             pulumi stack select yemiwebby-org/cci-ml-runner/cci-runner-linux
 
-            echo "⚙️ Setting Pulumi config..."
+            echo "Setting Pulumi config..."
             pulumi config set cci-ml-runner:circleciRunnerToken "$runner_token" --plaintext
 
-            echo "🛠️ Preparing cloud-init file..."
+            echo "Preparing cloud-init file..."
             sed "s/RUNNER_TOKEN/${runner_token}/g" runner_cloud_init_base.yml > runner_cloud_init.yml
 
       - pulumi/update:
@@ -160,21 +167,21 @@ jobs:
     executor: default_linux_machine
     steps:
       - checkout
+      - setup-python-venv
+      # - run:
+      #     name: Install Python 3.11 with pip
+      #     command: |
+      #       sudo apt update
+      #       sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
+      #       curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
 
-      - run:
-          name: Install Python 3.11 with pip
-          command: |
-            sudo apt update
-            sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
-            curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
-
-      - run:
-          name: Create venv and install deps
-          command: |
-            python3.11 -m venv venv
-            source venv/bin/activate
-            python -m pip install --upgrade pip
-            bash ./tools/install.sh
+      # - run:
+      #     name: Create venv and install deps
+      #     command: |
+      #       python3.11 -m venv venv
+      #       source venv/bin/activate
+      #       python -m pip install --upgrade pip
+      #       bash ./tools/install.sh
 
       - run:
           name: Build the model
@@ -195,24 +202,25 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - setup-python-venv:
+          tensorflow: true
+      # - run:
+      #     name: Install Python 3.11 and set as default
+      #     command: |
+      #       sudo apt update
+      #       sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
+      #       sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+      #       sudo update-alternatives --set python3 /usr/bin/python3.11
+      #       curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3
 
-      - run:
-          name: Install Python 3.11 and set as default
-          command: |
-            sudo apt update
-            sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
-            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            sudo update-alternatives --set python3 /usr/bin/python3.11
-            curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3
-
-      - run:
-          name: Create new venv and install TensorFlow
-          command: |
-            python3 --version
-            python3 -m venv venv
-            source venv/bin/activate
-            pip install --upgrade pip
-            pip install tensorflow
+      # - run:
+      #     name: Create new venv and install TensorFlow
+      #     command: |
+      #       python3 --version
+      #       python3 -m venv venv
+      #       source venv/bin/activate
+      #       pip install --upgrade pip
+      #       pip install tensorflow
 
       - run:
           name: Train the model
@@ -230,29 +238,30 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - setup-python-venv:
+          tensorflow: true
+      # - run:
+      #     name: Install Python 3.11 and set as default
+      #     command: |
+      #       sudo apt update
+      #       sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
+      #       sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+      #       sudo update-alternatives --set python3 /usr/bin/python3.11
+      #       curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3
 
-      - run:
-          name: Install Python 3.11 and set as default
-          command: |
-            sudo apt update
-            sudo apt install -y python3.11 python3.11-venv python3.11-distutils curl
-            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            sudo update-alternatives --set python3 /usr/bin/python3.11
-            curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3
+      # - run:
+      #     name: Recreate venv and install TensorFlow
+      #     command: |
+      #       python3 -m venv venv
+      #       source venv/bin/activate
+      #       pip install --upgrade pip
+      #       pip install tensorflow
 
-      - run:
-          name: Recreate venv and install TensorFlow
-          command: |
-            python3 -m venv venv
-            source venv/bin/activate
-            pip install --upgrade pip
-            pip install tensorflow
-
-      - run:
-          name: Run test script
-          command: |
-            source venv/bin/activate
-            python3 ./ml/3_test.py
+      # - run:
+      #     name: Run test script
+      #     command: |
+      #       source venv/bin/activate
+      #       python3 ./ml/3_test.py
 
   retrain:
     executor: default_linux_machine
@@ -266,22 +275,24 @@ jobs:
             mkdir -p ~/.ssh
             echo "$MODEL_SERVER_SSH_KEY" | base64 --decode > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
-      - run:
-          name: Ensure Python 3.11 is active
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y python3.11 python3.11-venv python3.11-distutils curl
-            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            sudo update-alternatives --set python3 /usr/bin/python3.11
-            curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
-            python3 --version
-      - run:
-          name: Recreate virtual environment & install TensorFlow.
-          command: |
-            python3 -m venv venv
-            source ./venv/bin/activate
-            pip install --upgrade pip
-            pip install tensorflow
+      - setup-python-venv:
+          tensorflow: true
+      # - run:
+      #     name: Ensure Python 3.11 is active
+      #     command: |
+      #       sudo apt-get update
+      #       sudo apt-get install -y python3.11 python3.11-venv python3.11-distutils curl
+      #       sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+      #       sudo update-alternatives --set python3 /usr/bin/python3.11
+      #       curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
+      #       python3 --version
+      # - run:
+      #     name: Recreate virtual environment & install TensorFlow.
+      #     command: |
+      #       python3 -m venv venv
+      #       source ./venv/bin/activate
+      #       pip install --upgrade pip
+      #       pip install tensorflow
       - run:
           command: source ./venv/bin/activate && python3 ./ml/6_retrain.py
           name: Retrain the model
@@ -315,26 +326,9 @@ jobs:
             echo "DEPLOY_SERVER_USERNAME=$DEPLOY_SERVER_USERNAME"
             echo "DEPLOY_SERVER_PASSWORD=$DEPLOY_SERVER_PASSWORD"
 
-      - run:
-          name: Show SSH key fingerprint
-          command: ssh-keygen -lf ~/.ssh/id_rsa
+      - setup-python-venv:
+          tensorflow: true
 
-      - run:
-          name: Ensure Python 3.11 is active
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y python3.11 python3.11-venv python3.11-distutils curl
-            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            sudo update-alternatives --set python3 /usr/bin/python3.11
-            curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.11
-            python3 --version
-      - run:
-          name: Recreate virtual environment & install TensorFlow
-          command: |
-            python3 -m venv venv
-            source ./venv/bin/activate
-            pip install --upgrade pip
-            pip install tensorflow
       - run:
           name: Package the model
           command: |
@@ -355,33 +349,9 @@ jobs:
             echo "$MODEL_SERVER_SSH_KEY" | base64 --decode > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
 
-      - run:
-          name: Debug deploy target
-          command: |
-            echo "DEPLOY_SERVER_HOSTNAME=$DEPLOY_SERVER_HOSTNAME"
-            ping -c 2 $DEPLOY_SERVER_HOSTNAME || true
-      - run:
-          name: Show private key type
-          command: head -5 ~/.ssh/id_rsa
-      - run:
-          name: Show SSH key fingerprint
-          command: ssh-keygen -lf ~/.ssh/id_rsa
-
-      - run:
-          name: Ensure Python 3.11 is installed
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y python3.11 python3.11-venv python3.11-distutils
-            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            sudo update-alternatives --set python3 /usr/bin/python3.11
-
-      - run:
-          name: Recreate venv and install dependencies
-          command: |
-            python3 -m venv venv
-            source venv/bin/activate
-            pip install --upgrade pip
-            pip install python-dotenv tensorflow pysftp
+      - setup-python-venv:
+          tensorflow: true
+          extra-packages: "python-dotenv pysftp"
 
       - run:
           command: |
@@ -400,21 +370,10 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run:
-          name: Ensure Python 3.11 is installed
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y python3.11 python3.11-venv python3.11-distutils
-            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-            sudo update-alternatives --set python3 /usr/bin/python3.11
 
-      - run:
-          name: Recreate venv and install dependencies
-          command: |
-            python3 -m venv venv
-            source venv/bin/activate
-            pip install --upgrade pip
-            pip install python-dotenv tensorflow pysftp requests
+      - setup-python-venv:
+          tensorflow: true
+          extra-packages: "python-dotenv pysftp requests"
       - wait-5
       - run:
           command: source ./venv/bin/activate && python3 ./ml/7_test_deployed_model.py

@@ -58,12 +58,6 @@ remote_staging_path = os.getenv('DEPLOY_SERVER_PATH') + '/staging/' + version
 # Again, it pays to be verbose - any output will appear in the CircleCI web console for later inspection
 print('Uploading model to: ' + remote_staging_path)
 
-# with pysftp.Connection(os.getenv('DEPLOY_SERVER_HOSTNAME'), username=os.getenv('DEPLOY_SERVER_USERNAME'), password=os.getenv('DEPLOY_SERVER_PASSWORD'), cnopts=cnopts) as sftp:
-#     # Make all non-existing directories
-#     sftp.makedirs(remote_staging_path)
-#     # The packaged model is a directory, so must use the put_r function to recursively upload it
-#     sftp.put_r(temp_export_path, remote_staging_path)
-
 with pysftp.Connection(
     host=os.getenv("DEPLOY_SERVER_HOSTNAME"),
     username=os.getenv("DEPLOY_SERVER_USERNAME"),
