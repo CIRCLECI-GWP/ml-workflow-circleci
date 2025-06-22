@@ -168,7 +168,7 @@ jobs:
     steps:
       - checkout
       - setup-python-venv:
-        tensorflow: true
+          tensorflow: true
       # - run:
       #     name: Install Python 3.11 with pip
       #     command: |
