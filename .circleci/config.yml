@@ -3,10 +3,16 @@ version: 2.1
 orbs:
   pulumi: pulumi/pulumi@2.1.0
 
+# executors:
+#   # One freshly baked runner, straight from the boulang... err, pipeline
+#   default_linux_machine:
+#     machine:
+#       image: "ubuntu-2204:2023.10.1"
 executors:
   default_linux_machine:
     machine:
       image: ubuntu-2204:current
+    # resource_class: tutorial-gwp/scaleway-linux-<< pipeline.number >>
 # See https://circleci.com/docs/reusing-config/#authoring-reusable-commands
 commands:
   check-python:
@@ -153,6 +159,7 @@ jobs:
     executor: default_linux_machine
     steps:
       - checkout
+
       - run:
           name: Install Python 3.11 with pip
           command: |
@@ -301,6 +308,17 @@ jobs:
             chmod 600 ~/.ssh/id_rsa
 
       - run:
+          name: Debug deploy hostname
+          command: |
+            echo "DEPLOY_SERVER_HOSTNAME=$DEPLOY_SERVER_HOSTNAME"
+            echo "DEPLOY_SERVER_USERNAME=$DEPLOY_SERVER_USERNAME"
+            echo "DEPLOY_SERVER_PASSWORD=$DEPLOY_SERVER_PASSWORD"
+
+      - run:
+          name: Show SSH key fingerprint
+          command: ssh-keygen -lf ~/.ssh/id_rsa
+
+      - run:
           name: Ensure Python 3.11 is active
           command: |
             sudo apt-get update
@@ -335,6 +353,18 @@ jobs:
             mkdir -p ~/.ssh
             echo "$MODEL_SERVER_SSH_KEY" | base64 --decode > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
+
+      - run:
+          name: Debug deploy target
+          command: |
+            echo "DEPLOY_SERVER_HOSTNAME=$DEPLOY_SERVER_HOSTNAME"
+            ping -c 2 $DEPLOY_SERVER_HOSTNAME || true
+      - run:
+          name: Show private key type
+          command: head -5 ~/.ssh/id_rsa
+      - run:
+          name: Show SSH key fingerprint
+          command: ssh-keygen -lf ~/.ssh/id_rsa
 
       - run:
           name: Ensure Python 3.11 is installed
@@ -416,17 +446,20 @@ workflows:
             - test
           context:
             - ml-scaleway-demo
+            - ml-ssh-keys
       # Do not deploy without manual approval - you can inspect the console output from training and make sure you are happy to deploy
       - deploy:
           requires:
             - package
           context:
             - ml-scaleway-demo
+            - ml-ssh-keys
       - test-deployment:
           requires:
             - deploy
           context:
             - ml-scaleway-demo
+            - ml-ssh-keys
       - approve_destroy:
           type: approval
           requires:
