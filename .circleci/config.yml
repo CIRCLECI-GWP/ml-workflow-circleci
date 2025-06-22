@@ -167,7 +167,8 @@ jobs:
     executor: default_linux_machine
     steps:
       - checkout
-      - setup-python-venv
+      - setup-python-venv:
+        tensorflow: true
       # - run:
       #     name: Install Python 3.11 with pip
       #     command: |
