@@ -407,20 +407,17 @@ workflows:
             - test
           context:
             - ml-scaleway-demo
-            - ml-ssh-keys
       # Do not deploy without manual approval - you can inspect the console output from training and make sure you are happy to deploy
       - deploy:
           requires:
             - package
           context:
             - ml-scaleway-demo
-            - ml-ssh-keys
       - test-deployment:
           requires:
             - deploy
           context:
             - ml-scaleway-demo
-            - ml-ssh-keys
       - approve_destroy:
           type: approval
           requires:
@@ -446,6 +443,8 @@ workflows:
       - retrain:
           requires:
             - install-build
+          context:
+            - ml-scaleway-demo
       # Do not redeploy without manual approval - you can inspect the console output from training and make sure you are happy to deploy the retrained model
       - hold: # A job that will require manual approval in the CircleCI web application.
           requires:
