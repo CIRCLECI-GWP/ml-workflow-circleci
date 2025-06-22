@@ -21,7 +21,7 @@ load_dotenv()
 with open(os.path.join(script_dir, 'model_version.txt')) as f:
     version = f.readline().strip()
 
-# To deploy, we'll copy the most recent packaged model from the staging location to the production location
+# To deploy, we'll copy the most recent packaged model from the staging location to the production location.
 remote_staging_path = os.getenv(
     'DEPLOY_SERVER_PATH') + '/staging/' + str(version)
 
