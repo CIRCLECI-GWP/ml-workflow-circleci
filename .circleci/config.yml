@@ -47,9 +47,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Debug Token Length (just to verify presence)
+          name: Write model server public key
           command: |
-            echo ${#CIRCLECI_CLI_TOKEN}
+            mkdir -p ~/.ssh
+            echo "$MODEL_SERVER_PUBLIC_KEY" > ~/.ssh/id_rsa_modelserver.pub
 
       - run:
           name: Install CircleCI CLI
