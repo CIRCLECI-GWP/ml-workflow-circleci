@@ -81,7 +81,7 @@ jobs:
       - pulumi/login
 
       - run:
-          name: Provision new runner and prepare cloud-init file
+          name: Provision new runner and prepare cloud-init file.
           command: |
             RESOURCE_CLASS="tutorial-gwp/scaleway-linux-${CIRCLE_WORKFLOW_ID}"
 
