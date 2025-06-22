@@ -33,18 +33,25 @@ users:
     home: /home/demo
     create_groups: true
     ssh-authorized-keys:
-      - {public_key} 
+      - {public_key}
 
 package_update: true
 package_upgrade: true
-packages:
-  - docker.io
 
 runcmd:
+  - apt-get update -y
+  - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update -y
+  - apt-get install -y docker-ce docker-ce-cli containerd.io
   - systemctl enable docker
   - systemctl start docker
   - usermod -aG docker demo
-{cloud_init_modelserver}
+  - mkdir -p /var/models/staging
+  - mkdir -p /var/models/prod
+  - chown -R demo:docker /var/models
+  - chmod -R 775 /var/models
 """
 
 # GPU runner

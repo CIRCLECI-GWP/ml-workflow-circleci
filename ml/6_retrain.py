@@ -36,7 +36,7 @@ cnopts.hostkeys = None
 
 with pysftp.Connection(
     host=os.getenv('DEPLOY_SERVER_HOSTNAME'),
-    username="root",
+    username=os.getenv("DEPLOY_SERVER_USERNAME"),
     private_key='/home/circleci/.ssh/id_rsa',
     cnopts=cnopts
 ) as sftp:

@@ -66,7 +66,7 @@ print('Uploading model to: ' + remote_staging_path)
 
 with pysftp.Connection(
     host=os.getenv("DEPLOY_SERVER_HOSTNAME"),
-    username="root", # os.getenv("DEPLOY_SERVER_USERNAME"),
+    username=os.getenv("DEPLOY_SERVER_USERNAME"),
     private_key="/home/circleci/.ssh/id_rsa",
     cnopts=cnopts
 ) as sftp:
